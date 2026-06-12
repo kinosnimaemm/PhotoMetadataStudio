@@ -1242,17 +1242,39 @@ cleanSaveButton.addEventListener("click", async () => {
   }
 });
 
-resultList.addEventListener("click", (e) => {
+resultList.addEventListener("click", async (e) => {
   const btn = e.target.closest(".small-dl-btn");
   if (!btn || !resultToken) return;
   const index = btn.dataset.index;
   const downloadUrl = `/api/download/${resultToken}/${index}`;
-  const a = document.createElement("a");
-  a.href = downloadUrl;
-  a.download = "";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  
+  // Меняем иконку на спиннер или делаем полупрозрачной на время скачивания
+  btn.style.opacity = "0.5";
+  btn.style.pointerEvents = "none";
+
+  try {
+    const response = await fetch(downloadUrl);
+    if (!response.ok) throw new Error("Ошибка загрузки");
+    
+    const blob = await response.blob();
+    const disposition = response.headers.get("content-disposition") || "";
+    const encodedName = disposition.match(/filename\*=UTF-8''([^;]+)/)?.[1];
+    const fileName = encodedName ? decodeURIComponent(encodedName) : `photo-${index}.jpg`;
+    
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    toast(err.message);
+  } finally {
+    btn.style.opacity = "0.7";
+    btn.style.pointerEvents = "auto";
+  }
 });
 
 async function updateAuthUI() {
