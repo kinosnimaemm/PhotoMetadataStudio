@@ -326,6 +326,12 @@ document.addEventListener("DOMContentLoaded", () => {
     toast("Console Error: " + args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
   };
 
+  // Diagnostic URL toast
+  if (window.location.search || window.location.hash) {
+    const diagnosticStr = "URL Data: " + window.location.search + window.location.hash;
+    setTimeout(() => toast(diagnosticStr.substring(0, 100)), 1500);
+  }
+
   // Parse OAuth errors from URL hash or query string
   const urlParams = new URLSearchParams(window.location.search);
   const hashParams = new URLSearchParams(window.location.hash.slice(1));
@@ -1300,6 +1306,13 @@ async function init() {
         session = newSession;
         updateAuthUI();
       });
+
+      // Manually check if hash has access token
+      if (window.location.hash.includes("access_token")) {
+        toast("Hash detected: " + window.location.hash.substring(0, 30) + "...");
+      } else if (window.location.search.includes("code")) {
+        toast("Query code detected");
+      }
 
       // Manually process PKCE code to catch any hidden errors
       const urlParams = new URLSearchParams(window.location.search);
