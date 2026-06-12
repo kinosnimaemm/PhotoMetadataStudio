@@ -85,15 +85,34 @@ router.get("/user/credits", requireAuth, async (req, res) => {
   try {
     const client = await database.pool.connect();
     try {
-      const result = await client.query("SELECT credits, subscription_end_date FROM public.user_credits WHERE user_id = $1", [req.user.id]);
-      if (!result.rowCount) return res.json({ credits: 0, unlimited: false });
-      const { credits, subscription_end_date } = result.rows[0];
+      await client.query("BEGIN");
+      const result = await client.query("SELECT credits, subscription_end_date, last_daily_grant_date FROM public.user_credits WHERE user_id = $1 FOR UPDATE", [req.user.id]);
+      if (!result.rowCount) {
+        await client.query("ROLLBACK");
+        return res.json({ credits: 0, unlimited: false });
+      }
+      let { credits, subscription_end_date, last_daily_grant_date } = result.rows[0];
       const isUnlimited = subscription_end_date && new Date(subscription_end_date) > new Date();
+
+      // Daily +5 logic
+      const today = new Date().toISOString().slice(0, 10);
+      const lastGrantStr = last_daily_grant_date ? new Date(last_daily_grant_date).toISOString().slice(0, 10) : "";
+      
+      if (today !== lastGrantStr) {
+        credits = Math.min(50, credits + 5);
+        await client.query("UPDATE public.user_credits SET credits = $1, last_daily_grant_date = CURRENT_DATE WHERE user_id = $2", [credits, req.user.id]);
+      }
+      await client.query("COMMIT");
+
       res.json({ credits, unlimited: isUnlimited });
+    } catch (e) {
+      await client.query("ROLLBACK");
+      throw e;
     } finally {
       client.release();
     }
   } catch (error) {
+    logger.error({ error: error.message }, "Ошибка получения баланса");
     res.status(500).json({ error: "Не удалось получить баланс" });
   }
 });
@@ -192,17 +211,25 @@ router.post("/process", requireAuth, processLimiter, (req, res) => {
       const client = await database.pool.connect();
       try {
         await client.query("BEGIN");
-        const userRes = await client.query("SELECT credits, subscription_end_date FROM public.user_credits WHERE user_id = $1 FOR UPDATE", [req.user.id]);
+        const userRes = await client.query("SELECT credits, subscription_end_date, last_daily_grant_date FROM public.user_credits WHERE user_id = $1 FOR UPDATE", [req.user.id]);
         if (!userRes.rowCount) throw new Error("Профиль не найден. Пожалуйста, обратитесь в поддержку.");
         
-        const { credits, subscription_end_date } = userRes.rows[0];
+        let { credits, subscription_end_date, last_daily_grant_date } = userRes.rows[0];
         isUnlimited = subscription_end_date && new Date(subscription_end_date) > new Date();
+        
+        // Daily +5 logic
+        const today = new Date().toISOString().slice(0, 10);
+        const lastGrantStr = last_daily_grant_date ? new Date(last_daily_grant_date).toISOString().slice(0, 10) : "";
+        if (today !== lastGrantStr) {
+          credits = Math.min(50, credits + 5);
+          await client.query("UPDATE public.user_credits SET credits = $1, last_daily_grant_date = CURRENT_DATE WHERE user_id = $2", [credits, req.user.id]);
+        }
         
         if (isUnlimited) {
           remainingCredits = credits;
         } else {
           if (credits < uploads.length) {
-            throw new Error(`Недостаточно баланса. У вас ${credits} фото, вы пытаетесь загрузить ${uploads.length}. Пожалуйста, пополните баланс.`);
+            throw new Error(`Недостаточно баланса. У вас ${credits} фото, вы пытаетесь загрузить ${uploads.length}. Подождите до завтра (будет +5) или перейдите на Unlimited.`);
           }
           await client.query("UPDATE public.user_credits SET credits = credits - $1 WHERE user_id = $2", [uploads.length, req.user.id]);
           remainingCredits = credits - uploads.length;
@@ -438,6 +465,28 @@ router.get("/profiles/custom", requireAuth, async (req, res) => {
 router.post("/profiles/custom", requireAuth, async (req, res) => {
   try {
     if (!database.pool) throw new Error("База данных не настроена");
+    
+    // Check user subscription and profile limits
+    const client = await database.pool.connect();
+    let isUnlimited = false;
+    let currentProfilesCount = 0;
+    try {
+      const userRes = await client.query("SELECT subscription_end_date FROM public.user_credits WHERE user_id = $1", [req.user.id]);
+      if (userRes.rowCount > 0) {
+        const { subscription_end_date } = userRes.rows[0];
+        isUnlimited = subscription_end_date && new Date(subscription_end_date) > new Date();
+      }
+      
+      const countRes = await client.query("SELECT COUNT(*) FROM metadata_profiles WHERE user_id = $1", [req.user.id]);
+      currentProfilesCount = parseInt(countRes.rows[0].count, 10);
+    } finally {
+      client.release();
+    }
+    
+    if (!isUnlimited && currentProfilesCount >= 1) {
+      return res.status(403).json({ error: "В бесплатном тарифе можно иметь только 1 активный профиль. Перейдите на Unlimited.", code: "LIMIT_REACHED" });
+    }
+
     const raw = JSON.stringify(req.body);
     const profile = validateCustomProfile(raw);
     const result = await database.pool.query(

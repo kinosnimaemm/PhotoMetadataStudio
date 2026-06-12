@@ -685,9 +685,16 @@ $("#presetForm").addEventListener("submit", async (event) => {
         headers: { "Content-Type": "application/json", ...getAuthHeaders() },
         body: JSON.stringify(profile)
       });
-      if (!res.ok) throw new Error("Ошибка сохранения профиля в облаке.");
-      const saved = await res.json();
-      profile.id = saved.id;
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.code === "LIMIT_REACHED") {
+          presetDialog.close();
+          $("#pricingDialog").showModal();
+          throw new Error(data.error);
+        }
+        throw new Error(data.error || "Ошибка сохранения профиля в облаке.");
+      }
+      profile.id = data.id;
     } else {
       const custom = [profile, ...loadCustomProfilesLocal()];
       localStorage.setItem("metadataStudioPresets", JSON.stringify(custom));
@@ -698,7 +705,7 @@ $("#presetForm").addEventListener("submit", async (event) => {
     presetDialog.close();
     event.target.reset();
   } catch (error) {
-    toast(error.message);
+    if (error.message) toast(error.message);
   }
 });
 

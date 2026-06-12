@@ -245,70 +245,40 @@
         <p style="margin: 0.5rem 0 0; color: rgba(255,255,255,0.6); font-size: 0.95rem;">Выберите тариф, который подходит именно вам.</p>
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
         
-        <!-- Tier 1 -->
+        <!-- Tier 1: Free -->
         <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; transition: transform 0.2s, border-color 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.3)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.transform='none'">
           <div>
-            <h3 style="margin: 0; font-size: 1.25rem; font-weight: 500;">Старт</h3>
-            <p style="margin: 0; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Идеально для теста</p>
+            <h3 style="margin: 0; font-size: 1.5rem; font-weight: 500;">Free</h3>
+            <p style="margin: 0; color: rgba(255,255,255,0.5); font-size: 0.85rem;">Базовый набор</p>
           </div>
-          <div style="font-size: 2rem; font-weight: 700;">$5</div>
-          <ul style="list-style: none; padding: 0; margin: 0; flex: 1; font-size: 0.9rem; color: rgba(255,255,255,0.8); display: flex; flex-direction: column; gap: 0.5rem;">
-            <li>✓ <b>100</b> фотографий</li>
+          <div style="font-size: 2.5rem; font-weight: 700;">$0</div>
+          <ul style="list-style: none; padding: 0; margin: 0; flex: 1; font-size: 0.95rem; color: rgba(255,255,255,0.8); display: flex; flex-direction: column; gap: 0.75rem;">
+            <li>✓ <b>50</b> пробных фото при регистрации</li>
+            <li>✓ <b>+5</b> бесплатных фото каждый день</li>
+            <li>✓ Максимум 1 активный профиль</li>
             <li>✓ Удаление метаданных</li>
-            <li>✓ Доступ навсегда</li>
           </ul>
-          <button class="buy-button" data-tier="100" style="width: 100%; background: rgba(255,255,255,0.1); color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;">Купить</button>
+          <button class="dialog-close" data-close="pricingDialog" style="width: 100%; background: rgba(255,255,255,0.1); color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;">Текущий тариф</button>
         </div>
 
-        <!-- Tier 2 -->
-        <div style="background: linear-gradient(180deg, rgba(99,102,241,0.1) 0%, rgba(255,255,255,0.03) 100%); border: 1px solid #6366f1; border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; position: relative; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
-          <div style="position: absolute; top: -10px; right: 1rem; background: linear-gradient(135deg, #6366f1, #a855f7); font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;">ПОПУЛЯРНО</div>
+        <!-- Tier 2: Unlimited -->
+        <div style="background: linear-gradient(180deg, rgba(99,102,241,0.15) 0%, rgba(255,255,255,0.03) 100%); border: 1px solid #6366f1; border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; position: relative; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+          <div style="position: absolute; top: -10px; right: 1rem; background: linear-gradient(135deg, #6366f1, #a855f7); font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;">ЛУЧШИЙ ВЫБОР</div>
           <div>
-            <h3 style="margin: 0; font-size: 1.25rem; font-weight: 500;">Профи</h3>
-            <p style="margin: 0; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Оптимальный выбор</p>
+            <h3 style="margin: 0; font-size: 1.5rem; font-weight: 500;">Unlimited 💎</h3>
+            <p style="margin: 0; color: rgba(255,255,255,0.5); font-size: 0.85rem;">Свобода на месяц</p>
           </div>
-          <div style="font-size: 2rem; font-weight: 700;">$20</div>
-          <ul style="list-style: none; padding: 0; margin: 0; flex: 1; font-size: 0.9rem; color: rgba(255,255,255,0.8); display: flex; flex-direction: column; gap: 0.5rem;">
-            <li>✓ <b>500</b> фотографий</li>
-            <li>✓ Удаление метаданных</li>
-            <li>✓ Доступ навсегда</li>
-          </ul>
-          <button class="buy-button" data-tier="500" style="width: 100%; background: #6366f1; color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='#6366f1'">Купить</button>
-        </div>
-
-        <!-- Tier 3 -->
-        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; transition: transform 0.2s, border-color 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.3)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.transform='none'">
-          <div>
-            <h3 style="margin: 0; font-size: 1.25rem; font-weight: 500;">Бизнес</h3>
-            <p style="margin: 0; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Максимальная выгода</p>
-          </div>
-          <div style="font-size: 2rem; font-weight: 700;">$35</div>
-          <ul style="list-style: none; padding: 0; margin: 0; flex: 1; font-size: 0.9rem; color: rgba(255,255,255,0.8); display: flex; flex-direction: column; gap: 0.5rem;">
-            <li>✓ <b>1000</b> фотографий</li>
-            <li>✓ Удаление метаданных</li>
-            <li>✓ Приоритет в очереди</li>
-          </ul>
-          <button class="buy-button" data-tier="1000" style="width: 100%; background: rgba(255,255,255,0.1); color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;">Купить</button>
-        </div>
-
-        <!-- Tier 4 -->
-        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; transition: transform 0.2s, border-color 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.3)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.transform='none'">
-          <div>
-            <h3 style="margin: 0; font-size: 1.25rem; font-weight: 500;">Безлимит</h3>
-            <p style="margin: 0; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Свобода на месяц</p>
-          </div>
-          <div style="font-size: 2rem; font-weight: 700;">$50<span style="font-size: 1rem; color: rgba(255,255,255,0.5);">/мес</span></div>
-          <ul style="list-style: none; padding: 0; margin: 0; flex: 1; font-size: 0.9rem; color: rgba(255,255,255,0.8); display: flex; flex-direction: column; gap: 0.5rem;">
-            <li>✓ <b>∞</b> фотографий</li>
+          <div style="font-size: 2.5rem; font-weight: 700;">$10<span style="font-size: 1rem; color: rgba(255,255,255,0.5); font-weight: normal;"> / мес</span></div>
+          <ul style="list-style: none; padding: 0; margin: 0; flex: 1; font-size: 0.95rem; color: rgba(255,255,255,0.8); display: flex; flex-direction: column; gap: 0.75rem;">
+            <li>✓ <b>Бесконечно</b> фото без ограничений</li>
+            <li>✓ <b>Неограниченное</b> количество профилей</li>
             <li>✓ Удаление метаданных</li>
             <li>✓ Поддержка 24/7</li>
           </ul>
-          <button class="buy-button" data-tier="unlimited" style="width: 100%; background: rgba(255,255,255,0.1); color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;">Купить</button>
+          <button class="buy-button" data-tier="unlimited" style="width: 100%; background: #6366f1; color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='#6366f1'">Оформить подписку</button>
         </div>
-
-      </div>
     </dialog>
 
     <dialog id="authDialog" class="auth-dialog">
