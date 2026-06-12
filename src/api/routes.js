@@ -81,7 +81,24 @@ router.get("/profiles", (req, res) => {
   res.json(profiles);
 });
 
-router.post("/process", processLimiter, (req, res) => {
+router.get("/user/credits", requireAuth, async (req, res) => {
+  try {
+    const client = await database.pool.connect();
+    try {
+      const result = await client.query("SELECT credits, subscription_end_date FROM public.user_credits WHERE user_id = $1", [req.user.id]);
+      if (!result.rowCount) return res.json({ credits: 0, unlimited: false });
+      const { credits, subscription_end_date } = result.rows[0];
+      const isUnlimited = subscription_end_date && new Date(subscription_end_date) > new Date();
+      res.json({ credits, unlimited: isUnlimited });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Не удалось получить баланс" });
+  }
+});
+
+router.post("/process", requireAuth, processLimiter, (req, res) => {
   const ac = new AbortController();
   res.on("close", () => {
     if (!res.writableEnded && !res.headersSent) {
@@ -169,6 +186,35 @@ router.post("/process", processLimiter, (req, res) => {
       // Введённое время трактуем как настенное время в таймзоне локации профиля
       const startDate = (startDateRaw && parseWallTime(startDateRaw, profile.timeZone)) || new Date();
 
+      // Check and deduct credits
+      let remainingCredits = 0;
+      let isUnlimited = false;
+      const client = await database.pool.connect();
+      try {
+        await client.query("BEGIN");
+        const userRes = await client.query("SELECT credits, subscription_end_date FROM public.user_credits WHERE user_id = $1 FOR UPDATE", [req.user.id]);
+        if (!userRes.rowCount) throw new Error("Профиль не найден. Пожалуйста, обратитесь в поддержку.");
+        
+        const { credits, subscription_end_date } = userRes.rows[0];
+        isUnlimited = subscription_end_date && new Date(subscription_end_date) > new Date();
+        
+        if (isUnlimited) {
+          remainingCredits = credits;
+        } else {
+          if (credits < uploads.length) {
+            throw new Error(`Недостаточно баланса. У вас ${credits} фото, вы пытаетесь загрузить ${uploads.length}. Пожалуйста, пополните баланс.`);
+          }
+          await client.query("UPDATE public.user_credits SET credits = credits - $1 WHERE user_id = $2", [uploads.length, req.user.id]);
+          remainingCredits = credits - uploads.length;
+        }
+        await client.query("COMMIT");
+      } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+      } finally {
+        client.release();
+      }
+
       const token = crypto.randomUUID();
       const processed = [];
       logger.info({ batch: token, count: uploads.length, profile: profile.name }, "Начало обработки партии");
@@ -190,8 +236,8 @@ router.post("/process", processLimiter, (req, res) => {
         if (clientToken) progressByClient.set(clientToken, { done: index + 1, total: uploads.length, current: name });
       }
       
-      outputBatches.set(token, { files: processed, profile: profile.name, downloaded: new Set() });
-      logger.info({ batch: token }, "Партия успешно обработана");
+      outputBatches.set(token, { files: processed, profile: profile.name, downloaded: new Set(), expiresAt: Date.now() + 15 * 60 * 1000 });
+      logger.info({ batch: token, count: processed.length, profile: profile.name }, "Партия успешно обработана");
       
       setTimeout(() => {
         const batch = outputBatches.get(token);
@@ -201,19 +247,19 @@ router.post("/process", processLimiter, (req, res) => {
         }
         outputBatches.delete(token);
       }, 15 * 60 * 1000).unref();
-
-      res.json({
-        ok: true,
-        token,
-        files: processed.map(({ name, captureDate }) => ({ name, captureDate })),
-        profile: profile.name,
-        tagsWritten: Object.keys(profile.tags).length,
-        count: processed.length
+      res.json({ 
+        ok: true, 
+        token, 
+        count: processed.length, 
+        files: processed,
+        credits: remainingCredits,
+        unlimited: isUnlimited
       });
     } catch (error) {
-      uploads.forEach((upload) => fs.rm(upload.path, { force: true }, () => {}));
+      uploads.forEach((item) => fs.rm(item.path, { force: true }, () => {}));
       if (!res.headersSent) {
-        res.status(400).json({ error: error.message });
+        logger.error({ error: error.message }, "Ошибка обработки партии");
+        res.status(500).json({ error: error.message });
       }
     } finally {
       if (clientToken) {

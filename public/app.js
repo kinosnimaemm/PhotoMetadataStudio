@@ -90,9 +90,12 @@ const authBar = $("#authBar");
 const userEmail = $("#userEmail");
 const userProfile = $("#userProfile");
 const userAvatar = $("#userAvatar");
+const userBalanceText = $("#userBalanceText");
+const topupButton = $("#topupButton");
 const loginButton = $("#loginButton");
 const logoutButton = $("#logoutButton");
 const authDialog = $("#authDialog");
+const pricingDialog = $("#pricingDialog");
 const authForm = $("#authForm");
 const authTitle = $("#authTitle");
 const authSubmit = $("#authSubmit");
@@ -700,6 +703,11 @@ $("#presetForm").addEventListener("submit", async (event) => {
 });
 
 processButton.addEventListener("click", async () => {
+  if (!session) {
+    authDialog.showModal();
+    return;
+  }
+
   processButton.disabled = true;
   const processingDialog = $("#processingDialog");
   processingDialog.showModal();
@@ -740,9 +748,24 @@ processButton.addEventListener("click", async () => {
   }, 600);
 
   try {
-    const response = await fetch("/api/process", { method: "POST", body: formData });
+    const response = await fetch("/api/process", { 
+      method: "POST", 
+      headers: getAuthHeaders(),
+      body: formData 
+    });
     const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error || "Не удалось обработать партию.");
+    if (!response.ok) {
+      if (payload.error && payload.error.includes("Недостаточно баланса")) {
+        pricingDialog.showModal();
+      }
+      throw new Error(payload.error || "Не удалось обработать партию.");
+    }
+    
+    // Update balance UI
+    if (userBalanceText) {
+      userBalanceText.textContent = payload.unlimited ? "∞ фото" : `${payload.credits} фото`;
+    }
+
     resultToken = payload.token;
     $("#resultTitle").textContent = `${payload.count} фото готовы.`;
     resultDetails.textContent = `${payload.profile} · последовательная партия`;
@@ -766,6 +789,16 @@ processButton.addEventListener("click", async () => {
     processingDialog.setAttribute("inert", "");
     updateButton();
   }
+});
+
+topupButton?.addEventListener("click", () => {
+  pricingDialog.showModal();
+});
+
+$$(".buy-button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    alert("Платежная система в процессе подключения. Скоро вы сможете пополнить баланс через криптовалюту (TON Connect)!");
+  });
 });
 
 cleanSaveButton.addEventListener("click", async () => {
@@ -829,7 +862,7 @@ cleanSaveButton.addEventListener("click", async () => {
   }
 });
 
-function updateAuthUI() {
+async function updateAuthUI() {
   if (session) {
     const meta = session.user?.user_metadata || {};
     const email = session.user?.email || "";
@@ -848,6 +881,17 @@ function updateAuthUI() {
 
     userProfile.hidden = false;
     loginButton.hidden = true;
+    
+    // Fetch credits
+    try {
+      const res = await fetch("/api/user/credits", { headers: getAuthHeaders() });
+      if (res.ok) {
+        const { credits, unlimited } = await res.json();
+        userBalanceText.textContent = unlimited ? "∞ фото" : `${credits} фото`;
+      }
+    } catch (e) {
+      console.error("Ошибка загрузки баланса:", e);
+    }
   } else {
     userProfile.hidden = true;
     loginButton.hidden = false;
