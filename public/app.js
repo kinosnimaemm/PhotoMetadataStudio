@@ -1092,7 +1092,15 @@ processButton.addEventListener("click", async () => {
       headers: getAuthHeaders(),
       body: formData 
     });
-    const payload = await response.json();
+    let payload;
+    let rawText = "";
+    try {
+      rawText = await response.text();
+      payload = JSON.parse(rawText);
+    } catch (e) {
+      throw new Error(`Ошибка сервера (HTTP ${response.status}): ${rawText.slice(0, 80).replace(/<[^>]*>?/gm, '')}`);
+    }
+    
     if (!response.ok) {
       if (payload.error && payload.error.includes("Недостаточно баланса")) {
         pricingDialog.showModal();
@@ -1174,7 +1182,14 @@ cleanSaveButton.addEventListener("click", async () => {
     try {
       const response = await fetch(`/api/download-batch/${resultToken}`);
       if (!response.ok) {
-        const payload = await response.json();
+        let payload;
+        let rawText = "";
+        try {
+          rawText = await response.text();
+          payload = JSON.parse(rawText);
+        } catch (e) {
+          throw new Error(`Ошибка сервера (HTTP ${response.status}): ${rawText.slice(0, 80).replace(/<[^>]*>?/gm, '')}`);
+        }
         throw new Error(payload.error || t("downloadFail"));
       }
       const blob = await response.blob();
