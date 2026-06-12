@@ -1112,7 +1112,14 @@ processButton.addEventListener("click", async () => {
     payload.files.forEach((file, index) => {
       const row = document.createElement("div");
       row.className = "result-row";
-      row.innerHTML = `<b>${escapeHtml(file.name)}</b><span>${new Date(file.captureDate).toLocaleString("ru-RU")}</span><span class="pending-mark">•</span>`;
+      row.innerHTML = `
+        <b>${escapeHtml(file.name)}</b>
+        <span>${new Date(file.captureDate).toLocaleString("ru-RU")}</span>
+        <button class="small-dl-btn" data-index="${index}" title="Скачать">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </button>
+        <span class="pending-mark">•</span>
+      `;
       resultList.append(row);
     });
     result.hidden = false;
@@ -1199,6 +1206,19 @@ cleanSaveButton.addEventListener("click", async () => {
     cleanSaveButton.disabled = false;
     cleanSaveButton.innerHTML = t(!runtime || runtime.localSave !== false ? "btnSaveLocal" : "btnDownloadZip");
   }
+});
+
+resultList.addEventListener("click", (e) => {
+  const btn = e.target.closest(".small-dl-btn");
+  if (!btn || !resultToken) return;
+  const index = btn.dataset.index;
+  const downloadUrl = `/api/download/${resultToken}/${index}`;
+  const a = document.createElement("a");
+  a.href = downloadUrl;
+  a.download = "";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 });
 
 async function updateAuthUI() {
