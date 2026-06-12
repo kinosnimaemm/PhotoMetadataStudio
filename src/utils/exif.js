@@ -1,5 +1,6 @@
 // @ts-check
 const fs = require("node:fs");
+const crypto = require("node:crypto");
 const path = require("node:path");
 const { runCommand } = require("./exec");
 const { variedTags, isCameraProfile, isIphoneProfile } = require("./profile");
@@ -101,11 +102,16 @@ async function runExifTool(filePath, profile, captureDate, index, signal) {
       `-IPTC:TimeCreated=${iptcTime(captureDate, timeZone)}`,
       `-IPTC:DigitalCreationDate=${iptcDate(captureDate, timeZone)}`,
       `-IPTC:DigitalCreationTime=${iptcTime(captureDate, timeZone)}`,
+      `-EXIF:ImageUniqueID=${crypto.randomBytes(16).toString("hex").toUpperCase()}`,
+      "-EXIF:ComponentsConfiguration=1 2 3 0",
       "-EXIF:ExifImageWidth<File:ImageWidth",
       "-EXIF:ExifImageHeight<File:ImageHeight"
     );
     const colorProfile = isIphoneProfile(profile) ? P3_PROFILE : SRGB_PROFILE;
-    if (colorProfile) args.push(`-ICC_Profile<=${colorProfile}`);
+    if (colorProfile) {
+      args.push(`-ICC_Profile<=${colorProfile}`);
+      args.push(`-EXIF:ColorSpace=${isIphoneProfile(profile) ? "Uncalibrated" : "1"}`);
+    }
     if (thumbnailPath) args.push(`-EXIF:ThumbnailImage<=${thumbnailPath}`);
   }
   args.push(filePath);
