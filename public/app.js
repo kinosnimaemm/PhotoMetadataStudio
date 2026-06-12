@@ -604,9 +604,9 @@ cleanSaveButton.addEventListener("click", async () => {
 
 function updateAuthUI() {
   if (session) {
-    const meta = session.user.user_metadata || {};
-    const email = session.user.email;
-    const name = meta.full_name || email;
+    const meta = session.user?.user_metadata || {};
+    const email = session.user?.email || "";
+    const name = meta.full_name || email || "User";
     const avatarUrl = meta.avatar_url;
 
     userEmail.textContent = name;
@@ -616,7 +616,7 @@ function updateAuthUI() {
       userAvatar.textContent = "";
     } else {
       userAvatar.style.background = "linear-gradient(135deg, #6366f1, #a855f7)";
-      userAvatar.textContent = (name[0] || email[0] || "U").toUpperCase();
+      userAvatar.textContent = name.charAt(0).toUpperCase();
     }
 
     userProfile.style.display = "flex";
@@ -690,6 +690,12 @@ async function init() {
     const config = await configRes.json();
     if (config.supabaseUrl && window.supabase) {
       supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseKey);
+      
+      supabaseClient.auth.onAuthStateChange((event, newSession) => {
+        session = newSession;
+        updateAuthUI();
+      });
+
       const { data } = await supabaseClient.auth.getSession();
       session = data?.session || null;
       updateAuthUI();
