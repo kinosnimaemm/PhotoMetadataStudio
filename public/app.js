@@ -1288,7 +1288,10 @@ async function init() {
         updateAuthUI();
       });
 
-      const { data } = await supabaseClient.auth.getSession();
+      const { data, error } = await supabaseClient.auth.getSession();
+      if (error) {
+        setTimeout(() => toast("Auth Error: " + error.message), 1000);
+      }
       session = data?.session || null;
       updateAuthUI();
     }
