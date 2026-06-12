@@ -1,4 +1,27 @@
 const $ = (selector) => document.querySelector(selector);
+const $$ = (selector) => document.querySelectorAll(selector);
+
+// Polyfill for older Safari (e.g. Safari 14) that doesn't fully support <dialog>
+document.querySelectorAll('dialog').forEach(d => {
+  if (!d.showModal) {
+    d.showModal = function() {
+      this.setAttribute("open", "");
+      this.style.display = "block";
+      this.style.position = "fixed";
+      this.style.top = "50%";
+      this.style.left = "50%";
+      this.style.transform = "translate(-50%, -50%)";
+      this.style.zIndex = "9999";
+      this.style.background = "var(--ink)";
+      this.style.color = "var(--paper)";
+    };
+    d.close = function() {
+      this.removeAttribute("open");
+      this.style.display = "none";
+    };
+  }
+});
+
 const fileInput = $("#fileInput");
 const dropzone = $("#dropzone");
 const dropEmpty = $("#dropEmpty");
@@ -156,7 +179,7 @@ function renderFiles() {
   fileCounter.classList.toggle("has-files", selectedFiles.length > 0);
   dropEmpty.hidden = selectedFiles.length > 0;
   fileGrid.hidden = selectedFiles.length === 0;
-  fileGrid.replaceChildren();
+  fileGrid.innerHTML = "";
   selectedFiles.forEach((file, index) => {
     const card = document.createElement("article");
     card.className = "queue-card";
@@ -190,7 +213,7 @@ function resetWorkspace() {
   selectedFiles = [];
   renderFiles();
   result.hidden = true;
-  resultList.replaceChildren();
+  resultList.innerHTML = "";
   resultToken = null;
   startNumber.value = Math.floor(Math.random() * 8000 + 1000);
   startDate.value = localDateTimeValue();
@@ -225,7 +248,7 @@ function profileCard(profile) {
 }
 
 function renderProfiles(defaultId) {
-  profileList.replaceChildren();
+  profileList.innerHTML = "";
   profiles.forEach((profile) => profileList.append(profileCard(profile)));
   const next = profiles.find((profile) => profile.id === defaultId) ||
     profiles.find((profile) => profile.id === "usa-iphone-17-pro-max") ||
@@ -296,12 +319,11 @@ function buildCustomPreset() {
 
 function renderDeviceOptions(query = "") {
   const select = $("#presetDevice");
-  const current = select.value;
+  select.innerHTML = "";
   const normalized = query.trim().toLowerCase();
   const filtered = DEVICE_CATALOG.filter((item) =>
     `${item.brand} ${item.model}`.toLowerCase().includes(normalized)
   );
-  select.replaceChildren();
   const brands = [...new Set(filtered.map((item) => item.brand))];
   brands.forEach((brand) => {
     const group = document.createElement("optgroup");
@@ -314,7 +336,7 @@ function renderDeviceOptions(query = "") {
     });
     select.append(group);
   });
-  const fallback = filtered.find((item) => item.id === current) ||
+  const fallback = filtered.find((item) => item.id === select.value) ||
     filtered.find((item) => item.model === "iPhone SE (2nd generation)") ||
     filtered[0];
   if (fallback) select.value = fallback.id;
@@ -404,7 +426,7 @@ document.querySelectorAll('input[name="namingMode"]').forEach((input) => {
 
 $("#showTags").addEventListener("click", () => {
   $("#dialogTitle").textContent = selectedProfile.name;
-  $("#tagList").replaceChildren();
+  $("#tagList").innerHTML = "";
   for (const [tag, value] of Object.entries(selectedProfile.tags)) {
     const item = document.createElement("div");
     item.className = "tag-item";
@@ -501,7 +523,7 @@ processButton.addEventListener("click", async () => {
     resultToken = payload.token;
     $("#resultTitle").textContent = `${payload.count} фото готовы.`;
     resultDetails.textContent = `${payload.profile} · последовательная партия`;
-    resultList.replaceChildren();
+    resultList.innerHTML = "";
     payload.files.forEach((file, index) => {
       const row = document.createElement("div");
       row.className = "result-row";
