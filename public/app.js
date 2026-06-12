@@ -1193,8 +1193,9 @@ async function updateAuthUI() {
   }
 }
 
-googleAuthButton.addEventListener("click", async () => {
-  if (!supabaseClient) return toast(t("supabaseNA"));
+googleAuthButton.addEventListener("click", async (event) => {
+  event.preventDefault();
+  if (!supabaseClient) return toast(t ? t("supabaseNA") : "Supabase не настроен.");
   try {
     const { error } = await supabaseClient.auth.signInWithOAuth({
       provider: 'google',

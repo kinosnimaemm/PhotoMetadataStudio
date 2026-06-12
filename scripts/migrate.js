@@ -8,8 +8,14 @@ async function migrate() {
     return;
   }
 
-  const directory = path.join(__dirname, "..", "migrations");
-  const files = fs.readdirSync(directory).filter((file) => file.endsWith(".sql")).sort();
+  const directory = path.join(__dirname, "..", "supabase", "migrations");
+  let files = [];
+  try {
+    files = fs.readdirSync(directory).filter((file) => file.endsWith(".sql")).sort();
+  } catch (err) {
+    console.log("Migration directory not found, skipping.");
+    return;
+  }
   await pool.query(`
     create table if not exists schema_migrations (
       name text primary key,
