@@ -313,14 +313,13 @@ document.addEventListener("DOMContentLoaded", () => {
   updateAuthUI();
   applyLang();
   
-  // Parse OAuth errors from URL hash
-  if (window.location.hash.includes("error_description")) {
-    const hash = new URLSearchParams(window.location.hash.slice(1));
-    const errorDesc = hash.get("error_description");
-    if (errorDesc) {
-      setTimeout(() => toast(errorDesc.replace(/\+/g, ' ')), 500);
-      window.history.replaceState(null, "", window.location.pathname);
-    }
+  // Parse OAuth errors from URL hash or query string
+  const urlParams = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.slice(1));
+  const errorDesc = urlParams.get("error_description") || hashParams.get("error_description");
+  if (errorDesc) {
+    setTimeout(() => toast(errorDesc.replace(/\+/g, ' ')), 500);
+    window.history.replaceState(null, "", window.location.pathname);
   }
 });
 darkQuery.addEventListener("change", () => { if (themePref === "auto") applyTheme(); });
