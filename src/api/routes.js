@@ -200,6 +200,8 @@ function uniqueDestination(directory, fileName) {
   return candidate;
 }
 
+const IS_MAC = process.platform === "darwin";
+
 async function chooseSaveFolder(requestedDirectory) {
   if (requestedDirectory) {
     const resolved = path.resolve(requestedDirectory);
@@ -207,6 +209,8 @@ async function chooseSaveFolder(requestedDirectory) {
     if (!stats.isDirectory()) throw new Error("Выбранный путь не является папкой.");
     return resolved;
   }
+
+  if (!IS_MAC) throw new Error("Системное окно выбора папки доступно только на macOS. Укажите папку параметром directory.");
 
   return runCommandOutput("/usr/bin/osascript", [
     "-e",
@@ -233,15 +237,18 @@ router.post("/save/:token", async (req, res) => {
     for (const item of batch.files) {
       const destination = uniqueDestination(targetFolder, item.name);
       await fs.promises.copyFile(item.path, destination);
-      await runCommand("/usr/bin/xattr", ["-cr", destination]);
+      // Очистка расширенных атрибутов (поле Where from) актуальна только на macOS
+      if (IS_MAC) await runCommand("/usr/bin/xattr", ["-cr", destination]);
       saved.push(path.basename(destination));
       await fs.promises.rm(item.path, { force: true });
     }
     outputBatches.delete(token);
-    
-    // Fire and forget opening the folder
-    const { spawn } = require("node:child_process");
-    spawn("/usr/bin/open", [targetFolder], { detached: true, stdio: "ignore" }).unref();
+
+    // Fire and forget opening the folder (только macOS)
+    if (IS_MAC) {
+      const { spawn } = require("node:child_process");
+      spawn("/usr/bin/open", [targetFolder], { detached: true, stdio: "ignore" }).unref();
+    }
     
     logger.info({ batch: token, folder: targetFolder }, "Файлы успешно сохранены локально");
     res.json({ ok: true, count: saved.length, files: saved, path: targetFolder });

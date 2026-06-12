@@ -39,7 +39,7 @@ function formWithFiles(count, overrides = {}) {
 
 test.before(async () => {
   fixture = path.join(os.tmpdir(), `metadata-studio-test-${Date.now()}.jpg`);
-  execFileSync("/opt/homebrew/bin/ffmpeg", [
+  execFileSync(process.env.FFMPEG_BIN || "ffmpeg", [
     "-hide_banner", "-loglevel", "error", "-y",
     "-f", "lavfi", "-i", "color=c=blue:s=96x128:d=0.1",
     "-frames:v", "1", fixture
@@ -98,7 +98,7 @@ test("processes ten files with sequential names and timestamps", async () => {
   assert.equal(fileResponse.status, 200);
   const output = path.join(os.tmpdir(), `metadata-output-${Date.now()}.jpg`);
   fs.writeFileSync(output, Buffer.from(await fileResponse.arrayBuffer()));
-  const metadata = execFileSync("exiftool", [
+  const metadata = execFileSync(process.env.EXIFTOOL_BIN || "exiftool", [
     "-j", "-Model", "-City", "-GPSPosition", "-CreatorTool", output
   ], { encoding: "utf8" });
   const [tags] = JSON.parse(metadata);
@@ -142,7 +142,7 @@ test("applies a custom Android profile with sRGB", async () => {
   const fileResponse = await fetch(`${BASE}/api/download/${batch.token}/0`);
   const output = path.join(os.tmpdir(), `metadata-android-${Date.now()}.jpg`);
   fs.writeFileSync(output, Buffer.from(await fileResponse.arrayBuffer()));
-  const [tags] = JSON.parse(execFileSync("exiftool", [
+  const [tags] = JSON.parse(execFileSync(process.env.EXIFTOOL_BIN || "exiftool", [
     "-j", "-Make", "-Model", "-ProfileDescription", output
   ], { encoding: "utf8" }));
   assert.equal(tags.Make, "Google");
@@ -185,7 +185,7 @@ test("downloads the whole batch as a valid zip and then cleans temporary files",
   assert.equal(zipResponse.headers.get("content-type"), "application/zip");
   const zipPath = path.join(os.tmpdir(), `metadata-batch-${Date.now()}.zip`);
   fs.writeFileSync(zipPath, Buffer.from(await zipResponse.arrayBuffer()));
-  const listing = execFileSync("/usr/bin/unzip", ["-Z1", zipPath], { encoding: "utf8" });
+  const listing = execFileSync(process.env.UNZIP_BIN || "unzip", ["-Z1", zipPath], { encoding: "utf8" });
   assert.match(listing, /IMG_5200\.JPG/);
   assert.match(listing, /IMG_5201\.JPG/);
   assert.match(listing, /IMG_5202\.JPG/);

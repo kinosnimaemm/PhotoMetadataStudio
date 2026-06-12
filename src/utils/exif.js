@@ -7,8 +7,6 @@ const { exifDate, iptcTime, pad, gpsDate, gpsTime, iptcDate } = require("./date"
 
 const EXIFTOOL_BIN = process.env.EXIFTOOL_BIN || "exiftool";
 const FFMPEG_BIN = process.env.FFMPEG_BIN || "ffmpeg";
-const P3_PROFILE = process.env.P3_PROFILE || "/System/Library/ColorSync/Profiles/Display P3.icc";
-const SRGB_PROFILE = process.env.SRGB_PROFILE || "/System/Library/ColorSync/Profiles/sRGB Profile.icc";
 
 function readableFile(filePath) {
   try {
@@ -18,6 +16,30 @@ function readableFile(filePath) {
     return false;
   }
 }
+
+/**
+ * Возвращает первый читаемый ICC-профиль из списка кандидатов.
+ * Приоритет: env-переменная → системный профиль macOS → профиль из репозитория (CC0).
+ * @param {(string | undefined)[]} candidates
+ * @returns {string} Путь к профилю или пустая строка
+ */
+function resolveIccProfile(candidates) {
+  for (const candidate of candidates) {
+    if (candidate && readableFile(candidate)) return candidate;
+  }
+  return "";
+}
+
+const P3_PROFILE = resolveIccProfile([
+  process.env.P3_PROFILE,
+  "/System/Library/ColorSync/Profiles/Display P3.icc",
+  path.join(__dirname, "../../assets/icc/DisplayP3.icc")
+]);
+const SRGB_PROFILE = resolveIccProfile([
+  process.env.SRGB_PROFILE,
+  "/System/Library/ColorSync/Profiles/sRGB Profile.icc",
+  path.join(__dirname, "../../assets/icc/sRGB.icc")
+]);
 
 /**
  * Применяет метаданные к фотографии с помощью ExifTool.
@@ -83,7 +105,7 @@ async function runExifTool(filePath, profile, captureDate, index, signal) {
       "-EXIF:ExifImageHeight<File:ImageHeight"
     );
     const colorProfile = isIphoneProfile(profile) ? P3_PROFILE : SRGB_PROFILE;
-    if (readableFile(colorProfile)) args.push(`-ICC_Profile<=${colorProfile}`);
+    if (colorProfile) args.push(`-ICC_Profile<=${colorProfile}`);
     if (thumbnailPath) args.push(`-EXIF:ThumbnailImage<=${thumbnailPath}`);
   }
   args.push(filePath);
