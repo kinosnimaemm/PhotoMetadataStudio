@@ -1301,6 +1301,16 @@ async function init() {
         updateAuthUI();
       });
 
+      // Manually process PKCE code to catch any hidden errors
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code");
+      if (code) {
+        const { data, error } = await supabaseClient.auth.exchangeCodeForSession(code);
+        if (error) {
+          toast("Exchange Error: " + error.message);
+        }
+      }
+
       const { data, error } = await supabaseClient.auth.getSession();
       if (error) {
         setTimeout(() => toast("Auth Error: " + error.message), 1000);
