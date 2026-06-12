@@ -308,6 +308,21 @@ function applyTheme() {
     button.title = t("themeTitle", themePref);
   }
 }
+document.addEventListener("DOMContentLoaded", () => {
+  setupUI();
+  updateAuthUI();
+  applyLang();
+  
+  // Parse OAuth errors from URL hash
+  if (window.location.hash.includes("error_description")) {
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    const errorDesc = hash.get("error_description");
+    if (errorDesc) {
+      setTimeout(() => toast(errorDesc.replace(/\+/g, ' ')), 500);
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }
+});
 darkQuery.addEventListener("change", () => { if (themePref === "auto") applyTheme(); });
 $("#themeToggle").addEventListener("click", () => {
   themePref = THEME_ORDER[(THEME_ORDER.indexOf(themePref) + 1) % THEME_ORDER.length];
