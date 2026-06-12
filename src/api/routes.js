@@ -516,4 +516,6 @@ router.delete("/profiles/custom/:id", requireAuth, async (req, res) => {
   }
 });
 
+router.use("/payments", require("./payments")(database.pool, requireAuth));
+
 module.exports = router;

@@ -1142,8 +1142,27 @@ topupButton?.addEventListener("click", () => {
 });
 
 $$(".buy-button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    alert("Платежная система в процессе подключения. Скоро вы сможете пополнить баланс через криптовалюту (TON Connect)!");
+  btn.addEventListener("click", async () => {
+    if (!session) {
+      toast("Пожалуйста, войдите в аккаунт.");
+      return;
+    }
+    const originalText = btn.textContent;
+    btn.textContent = "Загрузка...";
+    btn.disabled = true;
+    try {
+      const res = await fetch("/api/payments/checkout", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${session.access_token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Ошибка оплаты");
+      window.location.href = data.pay_url;
+    } catch (err) {
+      toast(err.message);
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
   });
 });
 
