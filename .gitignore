@@ -7,3 +7,4 @@ supabase/.temp
 node_modules/
 .env
 supabase/.temp/
+todo.md

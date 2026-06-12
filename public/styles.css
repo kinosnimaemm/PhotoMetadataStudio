@@ -244,3 +244,87 @@ dialog::backdrop { background: rgba(20,20,16,.65); backdrop-filter: blur(7px); }
 .processing-dialog p { font-size: 13px; color: var(--muted); margin: 0; line-height: 1.5; max-width: 300px; }
 .processing-spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--signal); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 8px; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== Auth bar & dialog (перенесено из inline-стилей) ===== */
+.auth-bar { display: flex; align-items: center; gap: 12px; }
+.auth-login { padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; }
+.user-profile { display: flex; align-items: center; gap: 10px; padding: 4px 4px 4px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 30px; }
+.user-profile > span { font-size: 12px; color: var(--ink); font-weight: 600; }
+.user-avatar { width: 24px; height: 24px; display: grid; place-items: center; overflow: hidden; color: #fff; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 50%; font-weight: 700; font-size: 12px; }
+.logout-button { padding: 0 8px; color: var(--muted); background: transparent; border: 0; font-size: 20px; cursor: pointer; transition: color .2s; }
+.logout-button:hover { color: var(--signal); }
+.auth-dialog { max-width: 410px; padding: 32px; }
+.auth-heading { margin-bottom: 24px; text-align: center; }
+.auth-heading h2 { margin: 0; font-size: 27px; }
+.auth-heading p { margin: 7px 0 0; color: rgba(243,240,231,.5); font-size: 12px; }
+.google-auth-button { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; padding: 12px; color: #171714; background: #fff; border: 0; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: .18s ease; }
+.google-auth-button:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,.25); }
+.auth-divider { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.auth-divider hr { flex: 1; border: 0; border-top: 1px solid rgba(255,255,255,.12); }
+.auth-divider span { color: rgba(243,240,231,.4); font-size: 10px; text-transform: uppercase; }
+.auth-form { display: grid; gap: 14px; }
+.auth-form label { display: grid; gap: 6px; color: rgba(243,240,231,.7); font-size: 11px; font-weight: 700; }
+.auth-form input { padding: 12px; color: inherit; background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.12); border-radius: 10px; font-size: 14px; transition: border-color .2s; }
+.auth-form input:focus { border-color: rgba(255,255,255,.4); outline: none; }
+.auth-submit { margin-top: 4px; padding: 12px; color: #fff; background: var(--signal); border: 0; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; transition: background .2s; }
+.auth-submit:hover { background: var(--signal-dark); }
+.auth-toggle { color: rgba(243,240,231,.55); background: transparent; border: 0; font-size: 12px; text-decoration: underline; cursor: pointer; }
+
+/* ===== Тосты ===== */
+.toast-host { position: fixed; right: 20px; bottom: 20px; z-index: 1200; display: grid; gap: 8px; justify-items: end; }
+.toast { max-width: 360px; padding: 12px 16px; color: var(--paper); background: var(--ink); border-left: 3px solid var(--signal); border-radius: 12px; box-shadow: 0 14px 34px rgba(0,0,0,.28); font-size: 12px; font-weight: 600; line-height: 1.45; opacity: 0; transform: translateY(10px); transition: .3s ease; }
+.toast.visible { opacity: 1; transform: none; }
+.toast-success { border-left-color: #5f8b67; }
+.toast-info { border-left-color: #8d8c84; }
+
+/* ===== «Паспорт» профиля ===== */
+.profile-passport { display: grid; margin-bottom: 10px; padding: 10px 12px; background: rgba(255,255,255,.05); border: 1px solid rgba(243,240,231,.1); border-radius: 12px; }
+.passport-row { display: grid; grid-template-columns: 62px 1fr; gap: 10px; align-items: center; padding: 4px 0; }
+.passport-row span { color: rgba(243,240,231,.42); font-size: 8px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.passport-row b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f3f0e7; font-size: 11px; font-weight: 600; }
+
+/* ===== Подсказка о часовом поясе ===== */
+.tz-hint { margin: 8px 0 0; color: var(--muted); font-size: 9px; letter-spacing: .02em; }
+
+/* ===== Прогресс обработки ===== */
+.progress-track { width: 100%; max-width: 300px; height: 6px; background: rgba(255,255,255,.12); border-radius: 999px; overflow: hidden; }
+.progress-fill { width: 0%; height: 100%; background: var(--signal); border-radius: 999px; transition: width .4s ease; }
+
+/* ===== Карта в конструкторе ===== */
+.preset-map { height: 200px; margin-top: 9px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; z-index: 0; }
+.preset-map .leaflet-control-attribution { font-size: 8px; }
+
+/* ===== Подтверждение удаления пресета ===== */
+.delete-preset.arm-delete { color: #fff; background: var(--signal); border-color: var(--signal); opacity: 1; }
+
+/* ===== Тёмная тема (автоматически по настройке системы) ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #f0eee6;
+    --muted: #a3a299;
+    --paper: #161511;
+    --surface: rgba(32,31,26,.78);
+    --surface-strong: #24231d;
+    --green-soft: #2c3a2e;
+    --line: rgba(240,238,230,.14);
+    --line-strong: rgba(240,238,230,.28);
+    --shadow: 0 14px 40px rgba(0,0,0,.4);
+  }
+  body { background: radial-gradient(circle at 8% 0%, rgba(233,86,53,.1), transparent 28rem), radial-gradient(circle at 100% 30%, rgba(69,98,77,.12), transparent 32rem), var(--paper); }
+  .trust-line { color: #a7b3a8; background: rgba(32,31,26,.6); border-color: rgba(95,139,103,.22); }
+  .brand-stage { background: rgba(32,31,26,.45); }
+  .card { background: rgba(32,31,26,.62); }
+  .dropzone { background: rgba(22,21,17,.5); }
+  .dropzone:hover, .dropzone.dragging { background: #201d18; }
+  .queue-card { background: #24231d; }
+  .action-bar { background: rgba(28,27,22,.95); box-shadow: 0 12px 35px rgba(0,0,0,.4); }
+  .process-button:disabled { color: #6f6e66; background: #2a2922; }
+  .profile-panel { color: #f0eee6; background: #0d0c0a; }
+  .text-button { color: #f0eee6; }
+  .result { color: #f3f0e7; }
+  .naming-options input:checked + span { color: #161511; }
+  dialog { color: #f0eee6; background: #201f1a; }
+  .builder-card input, .builder-card select { color: inherit; background: #2a2922; }
+  .location-preview { color: #171714; }
+  .toast { color: #161511; background: #f0eee6; }
+}

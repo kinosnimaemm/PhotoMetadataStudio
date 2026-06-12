@@ -1,5 +1,8 @@
 # Photo Metadata Studio
+
 A completely private, secure web application designed to automatically write advanced EXIF metadata (Device Model, Lens, Geolocation) and safely batch-rename photos before uploading them to social media or clouds.
+
+![Photo Metadata Studio](public/og.png)
 
 ## Features
 - **Local Processing:** Your photos never leave your device (unless hosted in the cloud explicitly). All parsing, metadata embedding, and saving happens directly.
@@ -14,10 +17,22 @@ When run locally or on a private server, `PhotoMetadataStudio` respects your dig
 3. Your original photos are never overwritten.
 
 ## Getting Started
+
+Requirements: Node.js 18+, ExifTool, FFmpeg, zip (macOS: `brew install exiftool ffmpeg`; Ubuntu: `apt install libimage-exiftool-perl ffmpeg zip unzip`).
+
 1. `npm install`
-2. Configure `.env` with Supabase keys if you want cloud profiles.
+2. Configure `.env` with Supabase keys if you want cloud profiles (optional).
 3. `npm start`
 4. Open `http://localhost:4317`
+
+Run the test suite with `npm test`.
+
+### Highlights
+- Interactive map picker (Leaflet + OpenStreetMap) in the profile builder
+- Time-zone-aware timestamps: shooting time always matches the profile's location
+- Live progress bar, HEIC previews, paste from clipboard (Ctrl+V / Cmd+V)
+- Automatic dark mode, toast notifications, profile "passport" preview
+- Hardened backend: rate limiting, magic-byte file validation, strict CSP, process watchdogs
 
 ## License
 MIT License. See `LICENSE` for more details.

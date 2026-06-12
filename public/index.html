@@ -3,8 +3,16 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Metadata Studio</title>
-    <link rel="stylesheet" href="/styles.css?v=2">
+    <title>Metadata Studio — приватная работа с метаданными фотографий</title>
+    <meta name="description" content="Загрузите фото, выберите профиль устройства и локации — и получите партию с аккуратными синтетическими метаданными. Файлы удаляются сразу после сохранения.">
+    <meta name="theme-color" content="#f5f3ed">
+    <meta property="og:title" content="Metadata Studio">
+    <meta property="og:description" content="Приватная студия метаданных: профили устройств, геолокация, серийные имена. Файлы удаляются сразу после сохранения.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/og.png">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/vendor/leaflet.css">
+    <link rel="stylesheet" href="/styles.css?v=3">
   </head>
   <body>
     <div class="grain"></div>
@@ -14,12 +22,12 @@
         <div class="trust-line">
           <span class="trust-icon">✓</span>
           <p><strong>Your photos stay protected.</strong> They are deleted from the local server immediately after saving.</p>
-          <div class="auth-bar" id="authBar" style="display: flex; align-items: center; gap: 0.75rem;">
-            <button id="loginButton" class="mini-action" style="padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;">Войти в аккаунт</button>
-            <div id="userProfile" style="display: none; align-items: center; gap: 0.75rem; background: rgba(255,255,255,0.6); padding: 0.25rem 0.25rem 0.25rem 0.75rem; border-radius: 30px; border: 1px solid rgba(0,0,0,0.05);">
-              <span id="userEmail" style="font-size: 0.75rem; color: var(--ink); font-weight: 600;">email@example.com</span>
-              <div id="userAvatar" style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a855f7); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem; overflow: hidden;"></div>
-              <button id="logoutButton" aria-label="Выйти" style="background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0 0.5rem; font-size: 1.25rem; transition: color 0.2s;">&times;</button>
+          <div class="auth-bar" id="authBar">
+            <button id="loginButton" class="mini-action auth-login">Войти в аккаунт</button>
+            <div id="userProfile" class="user-profile" hidden>
+              <span id="userEmail">email@example.com</span>
+              <div id="userAvatar" class="user-avatar"></div>
+              <button id="logoutButton" class="logout-button" aria-label="Выйти">&times;</button>
             </div>
           </div>
         </div>
@@ -30,7 +38,7 @@
             <p class="eyebrow">PRIVATE PHOTO METADATA WORKSPACE</p>
             <h1><span>Metadata</span><em>Studio</em></h1>
           </div>
-          <p class="brand-summary">Загрузите фото, выберите профиль и сохраните готовую партию. Просто, последовательно и только на вашем Mac.</p>
+          <p class="brand-summary" id="brandSummary">Загрузите фото, выберите профиль и сохраните готовую партию. Просто, последовательно и только на вашем Mac.</p>
         </div>
       </header>
 
@@ -46,7 +54,7 @@
             <div class="drop-empty" id="dropEmpty">
               <div class="aperture">+</div>
               <strong>Выбрать фотографии</strong>
-              <span>или перетащите их в эту область</span>
+              <span>или перетащите их сюда, или просто Ctrl+V / ⌘V</span>
               <small>JPEG, HEIC, PNG, TIFF, WEBP · до 80 МБ</small>
             </div>
             <div id="fileGrid" class="file-grid" hidden></div>
@@ -69,6 +77,7 @@
                   </select>
                 </label>
               </div>
+              <p class="tz-hint" id="tzHint" hidden></p>
               <div class="naming-options">
                 <label><input type="radio" name="namingMode" value="iphone" checked><span>Как на iPhone</span></label>
                 <label><input type="radio" name="namingMode" value="custom"><span>Своё имя</span></label>
@@ -92,6 +101,12 @@
           <div class="profile-panel">
             <div id="profileList" class="profile-list"></div>
             <div class="profile-info">
+              <div id="profilePassport" class="profile-passport" hidden>
+                <div class="passport-row"><span>Камера</span><b id="passportDevice">—</b></div>
+                <div class="passport-row"><span>Локация</span><b id="passportLocation">—</b></div>
+                <div class="passport-row"><span>GPS</span><b id="passportGps">—</b></div>
+                <div class="passport-row"><span>Съёмка</span><b id="passportShot">—</b></div>
+              </div>
               <p id="profileDescription"></p>
               <button id="showTags" class="text-button" type="button">Какие поля будут записаны <span>→</span></button>
             </div>
@@ -120,6 +135,8 @@
       </section>
     </main>
 
+    <div id="toastHost" class="toast-host" aria-live="polite"></div>
+
     <dialog id="tagsDialog">
       <button class="dialog-close" data-close="tagsDialog">×</button>
       <p class="eyebrow">СОДЕРЖИМОЕ ПРОФИЛЯ</p>
@@ -131,7 +148,8 @@
       <div class="processing-content">
         <div class="processing-spinner"></div>
         <h2>Обработка фотографий...</h2>
-        <p>Ваши файлы поставлены в очередь и обрабатываются. Пожалуйста, не закрывайте вкладку.</p>
+        <p id="processingStatus">Ваши файлы поставлены в очередь и обрабатываются. Пожалуйста, не закрывайте вкладку.</p>
+        <div class="progress-track" id="progressTrack" hidden><div class="progress-fill" id="progressFill"></div></div>
       </div>
     </dialog>
 
@@ -142,7 +160,7 @@
           <p class="eyebrow">КОНСТРУКТОР ПРОФИЛЯ</p>
           <h2>Соберите свой профиль</h2>
         </div>
-        <p>Выберите телефон и готовую точку на карте. Остальные параметры уже настроены.</p>
+        <p>Выберите телефон и точку на карте — кликните по карте, чтобы поставить свою метку. Остальные параметры уже настроены.</p>
       </div>
       <form id="presetForm">
         <label class="profile-name-field"><span>Название профиля</span><input id="presetName" required maxlength="60" placeholder="Например: iPhone · New York"></label>
@@ -155,7 +173,7 @@
           </section>
 
           <section class="builder-card">
-            <div class="builder-card-title"><span>02</span><div><b>Локация</b><small>Готовая точка или свои координаты</small></div></div>
+            <div class="builder-card-title"><span>02</span><div><b>Локация</b><small>Готовая точка или клик по карте</small></div></div>
             <label class="location-select-label">Выберите место
             <select id="presetLocation">
               <optgroup label="Germany">
@@ -184,6 +202,7 @@
               <option value="custom">Свои координаты</option>
             </select>
             </label>
+            <div id="presetMap" class="preset-map"></div>
             <div class="location-preview">
               <span class="location-pin">⌖</span>
               <div><strong id="locationPreviewName">Brandenburg Gate</strong><small id="locationPreviewMeta">Berlin, Germany · 52.516275, 13.377704</small></div>
@@ -202,6 +221,7 @@
           <label>Страна<input id="presetCountry" value="Germany"></label>
           <label>Код страны<input id="presetCountryCode" maxlength="3" value="DE"></label>
           <label>Название места<input id="presetPlace" value="Brandenburg Gate"></label>
+          <label class="tz-field">Часовой пояс<select id="presetTimeZone"></select></label>
           </div>
         </details>
 
@@ -212,40 +232,31 @@
       </form>
     </dialog>
 
-    <dialog id="authDialog" class="preset-dialog" style="max-width: 400px; padding: 2rem; background: rgba(20,20,20,0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; color: white;">
-      <button class="dialog-close" data-close="authDialog" style="position: absolute; top: 1rem; right: 1rem; background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 1.5rem; cursor: pointer;">&times;</button>
-      <div style="text-align: center; margin-bottom: 2rem;">
-        <h2 id="authTitle" style="margin: 0; font-size: 1.5rem; font-weight: 600;">Вход в систему</h2>
-        <p style="margin: 0.5rem 0 0; color: rgba(255,255,255,0.5); font-size: 0.875rem;">Синхронизация профилей в облаке</p>
+    <dialog id="authDialog" class="auth-dialog">
+      <button class="dialog-close" data-close="authDialog">&times;</button>
+      <div class="auth-heading">
+        <h2 id="authTitle">Вход в систему</h2>
+        <p>Синхронизация профилей в облаке</p>
       </div>
 
-      <button id="googleAuthButton" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.75rem; background: white; color: black; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 500; cursor: pointer; margin-bottom: 1.5rem; font-size: 0.95rem;">
+      <button id="googleAuthButton" class="google-auth-button">
         <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
         Продолжить с Google
       </button>
 
-      <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-        <hr style="flex: 1; border: none; border-top: 1px solid rgba(255,255,255,0.1);"><span style="color: rgba(255,255,255,0.4); font-size: 0.75rem; text-transform: uppercase;">Или</span><hr style="flex: 1; border: none; border-top: 1px solid rgba(255,255,255,0.1);">
-      </div>
+      <div class="auth-divider"><hr><span>Или</span><hr></div>
 
-      <form id="authForm" style="display: flex; flex-direction: column; gap: 1rem;">
-        <label style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem; color: rgba(255,255,255,0.8);">
-          Email
-          <input id="authEmail" type="email" required style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 0.75rem; border-radius: 8px; font-size: 1rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='rgba(255,255,255,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
-        </label>
-        <label style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem; color: rgba(255,255,255,0.8);">
-          Пароль
-          <input id="authPassword" type="password" required style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 0.75rem; border-radius: 8px; font-size: 1rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='rgba(255,255,255,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
-        </label>
-        
-        <button type="submit" id="authSubmit" style="background: #2563eb; color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 500; font-size: 1rem; cursor: pointer; margin-top: 0.5rem; transition: background 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">Войти</button>
-        
-        <button type="button" id="authToggleMode" style="background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 0.875rem; cursor: pointer; text-decoration: underline; margin-top: 0.5rem;">Нет аккаунта? Зарегистрироваться</button>
+      <form id="authForm" class="auth-form">
+        <label>Email<input id="authEmail" type="email" required autocomplete="email"></label>
+        <label>Пароль<input id="authPassword" type="password" required autocomplete="current-password"></label>
+        <button type="submit" id="authSubmit" class="auth-submit">Войти</button>
+        <button type="button" id="authToggleMode" class="auth-toggle">Нет аккаунта? Зарегистрироваться</button>
       </form>
     </dialog>
 
     <script src="/vendor/supabase.js?v=1"></script>
+    <script src="/vendor/leaflet.js"></script>
     <script src="/devices.js?v=2"></script>
-    <script src="/app.js?v=2"></script>
+    <script src="/app.js?v=3"></script>
   </body>
 </html>
