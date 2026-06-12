@@ -237,3 +237,10 @@ dialog::backdrop { background: rgba(20,20,16,.65); backdrop-filter: blur(7px); }
   .privacy-note { align-items: flex-start; }
   .result { padding: 20px; }
 }
+
+.processing-dialog { text-align: center; max-width: 400px; }
+.processing-content { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 20px 0; }
+.processing-dialog h2 { font-size: 24px; margin: 0; color: white; }
+.processing-dialog p { font-size: 13px; color: var(--muted); margin: 0; line-height: 1.5; max-width: 300px; }
+.processing-spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--signal); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 8px; }
+@keyframes spin { to { transform: rotate(360deg); } }

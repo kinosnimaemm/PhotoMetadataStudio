@@ -8,21 +8,20 @@
   </head>
   <body>
     <div class="grain"></div>
-    <div class="auth-bar" id="authBar" style="position: absolute; top: 1rem; right: 1.5rem; z-index: 10; display: flex; align-items: center; gap: 0.75rem;">
-      <button id="loginButton" style="color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 20px; background: #2563eb; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(37,99,235,0.3);">Войти в аккаунт</button>
-      
-      <div id="userProfile" style="display: none; align-items: center; gap: 0.75rem; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); padding: 0.25rem 0.25rem 0.25rem 0.75rem; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1);">
-        <span id="userEmail" style="font-size: 0.875rem; color: rgba(255,255,255,0.8); font-weight: 500;">email@example.com</span>
-        <div id="userAvatar" style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a855f7); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem; overflow: hidden;"></div>
-        <button id="logoutButton" aria-label="Выйти" style="background: transparent; border: none; color: rgba(255,255,255,0.5); cursor: pointer; padding: 0 0.5rem; font-size: 1.25rem; transition: color 0.2s;">&times;</button>
-      </div>
-    </div>
+
     <main class="shell">
       <header class="brand-hero">
         <div class="trust-line">
           <span class="trust-icon">✓</span>
           <p><strong>Your photos stay protected.</strong> They are deleted from the local server immediately after saving.</p>
-          <span class="local-badge"><i></i> Local processing</span>
+          <div class="auth-bar" id="authBar" style="display: flex; align-items: center; gap: 0.75rem;">
+            <button id="loginButton" class="mini-action" style="padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;">Войти в аккаунт</button>
+            <div id="userProfile" style="display: none; align-items: center; gap: 0.75rem; background: rgba(255,255,255,0.6); padding: 0.25rem 0.25rem 0.25rem 0.75rem; border-radius: 30px; border: 1px solid rgba(0,0,0,0.05);">
+              <span id="userEmail" style="font-size: 0.75rem; color: var(--ink); font-weight: 600;">email@example.com</span>
+              <div id="userAvatar" style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a855f7); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem; overflow: hidden;"></div>
+              <button id="logoutButton" aria-label="Выйти" style="background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0 0.5rem; font-size: 1.25rem; transition: color 0.2s;">&times;</button>
+            </div>
+          </div>
         </div>
 
         <div class="brand-stage">
@@ -126,6 +125,14 @@
       <p class="eyebrow">СОДЕРЖИМОЕ ПРОФИЛЯ</p>
       <h2 id="dialogTitle"></h2>
       <div id="tagList" class="tag-list"></div>
+    </dialog>
+
+    <dialog id="processingDialog" class="processing-dialog" inert>
+      <div class="processing-content">
+        <div class="processing-spinner"></div>
+        <h2>Обработка фотографий...</h2>
+        <p>Ваши файлы поставлены в очередь и обрабатываются. Пожалуйста, не закрывайте вкладку.</p>
+      </div>
     </dialog>
 
     <dialog id="presetDialog" class="preset-dialog">

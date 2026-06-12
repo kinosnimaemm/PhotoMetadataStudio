@@ -476,7 +476,9 @@ $("#presetForm").addEventListener("submit", async (event) => {
 
 processButton.addEventListener("click", async () => {
   processButton.disabled = true;
-  processButton.querySelector("span").textContent = `Обрабатываю ${selectedFiles.length} фото…`;
+  const processingDialog = $("#processingDialog");
+  processingDialog.showModal();
+  processingDialog.removeAttribute("inert");
   result.hidden = true;
   resultToken = null;
   cleanSaveButton.disabled = false;
@@ -511,6 +513,8 @@ processButton.addEventListener("click", async () => {
   } catch (error) {
     alert(error.message);
   } finally {
+    processingDialog.close();
+    processingDialog.setAttribute("inert", "");
     updateButton();
   }
 });

@@ -1,64 +1,23 @@
 # Photo Metadata Studio
+A completely private, secure web application designed to automatically write advanced EXIF metadata (Device Model, Lens, Geolocation) and safely batch-rename photos before uploading them to social media or clouds.
 
-Интерфейс для пакетной очистки метаданных и применения выбранного профиля через ExifTool. Поддерживает локальный режим macOS и облачный Linux-контейнер.
+## Features
+- **Local Processing:** Your photos never leave your device (unless hosted in the cloud explicitly). All parsing, metadata embedding, and saving happens directly.
+- **Smart Profiles:** Recreate the metadata footprint of an iPhone 16 Pro Max in New York, or a Google Pixel in Tokyo. Dozens of real devices and famous locations are included.
+- **Cloud Accounts (Optional):** Save your custom preset configurations (e.g. "My Studio Setup") using Supabase Authentication.
+- **Sequence Generation:** Need to rename 100 photos to mimic the `IMG_XXXX` native format? It automatically calculates times and namespaces.
 
-- до 10 фотографий за один запуск;
-- последовательные имена `IMG_XXXX`;
-- логичная временная шкала и небольшие вариации параметров партии;
-- встроенные и пользовательские пресеты;
-- поисковый каталог iPhone, Samsung Galaxy, Google Pixel, Xiaomi, OnePlus, Huawei, Sony и Nothing;
-- локально: выбор папки через системное окно macOS без браузерного `Where from`;
-- в облаке: скачивание партии ZIP и немедленное удаление временных файлов;
-- явная XMP-маркировка синтетически применённых метаданных.
+## Privacy First
+When run locally or on a private server, `PhotoMetadataStudio` respects your digital privacy:
+1. No telemetry or analytics.
+2. Temporary files are destroyed instantly after processing.
+3. Your original photos are never overwritten.
 
-## Запуск
+## Getting Started
+1. `npm install`
+2. Configure `.env` with Supabase keys if you want cloud profiles.
+3. `npm start`
+4. Open `http://localhost:4317`
 
-Дважды нажмите `start.command` в Finder или выполните:
-
-```sh
-npm start
-```
-
-Затем откройте `http://127.0.0.1:4317`.
-
-Встроенные профили хранятся в `profiles.json`, пользовательские — в `localStorage` браузера. Сервер доступен только на `127.0.0.1`, временные обработанные файлы удаляются после сохранения или через 15 минут.
-
-## Облачный режим
-
-Подготовлен Docker-образ для Railway, Koyeb или Render:
-
-```sh
-APP_MODE=cloud npm start
-```
-
-Облачный сервер слушает `HOST=0.0.0.0` и назначенный платформой `PORT`. Для Linux-контейнера используются команды `ffmpeg`, `exiftool` и `zip`.
-
-Переменная `DATABASE_URL` необязательна. Когда PostgreSQL подключён, команда:
-
-```sh
-npm run db:migrate
-```
-
-создаёт таблицы пользователей, пользовательских профилей и истории партий. Фотографии в PostgreSQL не сохраняются.
-
-## Railway
-
-1. Создайте проект и подключите GitHub-репозиторий.
-2. Добавьте PostgreSQL через `New → Database → PostgreSQL`.
-3. В сервисе приложения задайте `DATABASE_URL=${{Postgres.DATABASE_URL}}`.
-4. Задайте `APP_MODE=cloud` и `DATABASE_SSL=false`.
-5. Сгенерируйте публичный домен в `Networking`.
-
-`railway.toml` запускает миграции перед деплоем и проверяет `/api/health`.
-
-### Важное отличие веб-версии
-
-Публичный сайт не может открыть нативное окно Finder на компьютере пользователя. Поэтому облачная версия скачивает ZIP средствами браузера, а локальная версия продолжает сохранять напрямую в выбранную папку macOS.
-
-## Проверка
-
-```sh
-npm test
-```
-
-Интеграционные тесты проверяют пакет из 10 файлов, лимит загрузки, последовательные имена и даты, профили iPhone/Android и удаление временных файлов после сохранения.
+## License
+MIT License. See `LICENSE` for more details.
