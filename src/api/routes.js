@@ -15,6 +15,7 @@ const { sniffImageFile } = require("../utils/filetype");
 const { createRateLimiter } = require("../utils/ratelimit");
 
 async function requireAuth(req, res, next) {
+  if (process.env.APP_MODE !== "cloud") { req.user = null; return next(); }
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) return res.status(401).json({ error: "Необходима авторизация" });
   if (!supabase) return res.status(501).json({ error: "Supabase не настроен на сервере" });
@@ -189,10 +190,10 @@ router.post("/process", requireAuth, processLimiter, (req, res) => {
   busboy.on("close", async () => {
     try {
       await Promise.all(writePromises);
-      if (tooManyFiles) throw new Error("Можно обработать максимум 10 фотографий.");
-      if (fileTooLarge) throw new Error("Один из файлов больше 80 МБ.");
-      if (rejectedFile) throw new Error(`Формат ${rejectedFile} пока не поддерживается.`);
-      if (!uploads.length) throw new Error("Фотографии не загружены.");
+      if (tooManyFiles) throw Object.assign(new Error("Можно обработать максимум 10 фотографий."), { status: 400 });
+      if (fileTooLarge) throw Object.assign(new Error("Один из файлов больше 80 МБ."), { status: 400 });
+      if (rejectedFile) throw Object.assign(new Error(`Формат ${rejectedFile} пока не поддерживается.`), { status: 400 });
+      if (!uploads.length) throw Object.assign(new Error("Фотографии не загружены."), { status: 400 });
       // Проверка магических байтов: расширение легко подделать,
       // а ExifTool/FFmpeg не должны получать на вход произвольные файлы.
       for (const upload of uploads) {
@@ -205,9 +206,10 @@ router.post("/process", requireAuth, processLimiter, (req, res) => {
       // Введённое время трактуем как настенное время в таймзоне локации профиля
       const startDate = (startDateRaw && parseWallTime(startDateRaw, profile.timeZone)) || new Date();
 
-      // Check and deduct credits
+      // Check and deduct credits (cloud mode only)
       let remainingCredits = 0;
       let isUnlimited = false;
+      if (req.user) {
       const client = await database.pool.connect();
       try {
         await client.query("BEGIN");
@@ -240,6 +242,7 @@ router.post("/process", requireAuth, processLimiter, (req, res) => {
         throw err;
       } finally {
         client.release();
+      }
       }
 
       const token = crypto.randomUUID();
@@ -286,7 +289,7 @@ router.post("/process", requireAuth, processLimiter, (req, res) => {
       uploads.forEach((item) => fs.rm(item.path, { force: true }, () => {}));
       if (!res.headersSent) {
         logger.error({ error: error.message }, "Ошибка обработки партии");
-        res.status(500).json({ error: error.message });
+        res.status(error.status || 500).json({ error: error.message });
       }
     } finally {
       if (clientToken) {

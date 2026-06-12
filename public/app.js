@@ -165,6 +165,8 @@ const STR = {
   prepN: { ru: (n) => `Подготовка ${n} фото…`, en: (n) => `Preparing ${n} photo${n === 1 ? "" : "s"}…` },
   progressLine: { ru: (d, tot, cur) => `${d} из ${tot} · ${cur}`, en: (d, tot, cur) => `${d} of ${tot} · ${cur}` },
   processFail: { ru: "Не удалось обработать партию.", en: "Failed to process the batch." },
+  balance: { ru: (n) => `${n} фото`, en: (n) => `${n} photos` },
+  balanceUnlimited: { ru: "∞ фото", en: "∞ photos" },
   downloadFail: { ru: "Не удалось скачать партию.", en: "Failed to download the batch." },
   saveFail: { ru: "Не удалось сохранить партию.", en: "Failed to save the batch." },
   supabaseNA: { ru: "Supabase не настроен.", en: "Supabase is not configured." },
@@ -233,7 +235,16 @@ const STATIC_I18N = [
   ["#authDialog .auth-heading p", "text", "Sync profiles in the cloud"],
   ["#googleAuthButton", "first", " Continue with Google"],
   [".auth-divider span", "text", "Or"],
-  [".auth-form label", "first", ["Email", "Password"]]
+  [".auth-form label", "first", ["Email", "Password"]],
+  ["#topupButton", "text", "Top up"],
+  [".pricing-heading h2", "text", "Top up your balance"],
+  [".pricing-heading p", "text", "Pick the plan that fits you."],
+  [".plan-tagline", "text", ["Essentials", "A month of freedom"]],
+  [".plan-price small", "text", " / mo"],
+  [".plan-card li", "html", ["<b>50</b> trial photos at sign-up", "<b>+5</b> free photos every day", "1 active profile max", "Metadata removal", "<b>Unlimited</b> photos, no limits", "<b>Unlimited</b> profiles", "Metadata removal", "24/7 support"]],
+  [".dialog-close-plan", "text", "Current plan"],
+  [".buy-button", "text", "Subscribe"],
+  [".plan-badge", "text", "BEST VALUE"]
 ];
 const ruOriginals = new Map();
 
@@ -998,7 +1009,7 @@ $("#presetForm").addEventListener("submit", async (event) => {
 });
 
 processButton.addEventListener("click", async () => {
-  if (!session) {
+  if (runtime.mode === "cloud" && !session) {
     authDialog.showModal();
     return;
   }
@@ -1058,7 +1069,7 @@ processButton.addEventListener("click", async () => {
 
     // Update balance UI
     if (userBalanceText) {
-      userBalanceText.textContent = payload.unlimited ? "∞ фото" : `${payload.credits} фото`;
+      userBalanceText.textContent = payload.unlimited ? t("balanceUnlimited") : t("balance", payload.credits);
     }
 
     resultToken = payload.token;
@@ -1170,7 +1181,7 @@ async function updateAuthUI() {
       userAvatar.style.background = `url(${avatarUrl}) center/cover`;
       userAvatar.textContent = "";
     } else {
-      userAvatar.style.background = "linear-gradient(135deg, #6366f1, #a855f7)";
+      userAvatar.style.background = "linear-gradient(145deg, #ff6a44, #d83a1c)";
       userAvatar.textContent = name.charAt(0).toUpperCase();
     }
 
@@ -1182,7 +1193,7 @@ async function updateAuthUI() {
       const res = await fetch("/api/user/credits", { headers: getAuthHeaders() });
       if (res.ok) {
         const { credits, unlimited } = await res.json();
-        userBalanceText.textContent = unlimited ? "∞ фото" : `${credits} фото`;
+        userBalanceText.textContent = unlimited ? t("balanceUnlimited") : t("balance", credits);
       }
     } catch (e) {
       console.error("Ошибка загрузки баланса:", e);

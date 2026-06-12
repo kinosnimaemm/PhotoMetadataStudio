@@ -22,20 +22,18 @@
         <div class="trust-line">
           <span class="trust-icon">✓</span>
           <p><strong>Your photos stay protected.</strong> They are deleted from the local server immediately after saving.</p>
-          <div class="auth-bar" id="authBar" style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="auth-bar" id="authBar">
             <button id="langToggle" class="icon-toggle lang-toggle" type="button" title="Language">EN</button>
             <button id="themeToggle" class="icon-toggle" type="button" title="Тема: авто">◐</button>
-            <button id="loginButton" class="mini-action" style="padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;">Войти в аккаунт</button>
-            <div id="userProfile" style="display: none; align-items: center; gap: 0.75rem; background: rgba(255,255,255,0.6); padding: 0.25rem 0.25rem 0.25rem 0.75rem; border-radius: 30px; border: 1px solid rgba(0,0,0,0.05);">
-              <span id="userEmail" style="font-size: 0.75rem; color: var(--ink); font-weight: 600;">email@example.com</span>
-              
-              <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--surface); padding: 2px 8px; border-radius: 999px; font-size: 0.7rem; font-weight: 700;">
-                <span id="userBalanceText" style="color: var(--ink);">100 фото</span>
-                <button id="topupButton" class="mini-action" style="padding: 2px 8px; font-size: 0.65rem; border-radius: 999px; background: linear-gradient(135deg, #a855f7, #6366f1); color: white; border: none;">Пополнить</button>
+            <button id="loginButton" class="auth-login" type="button">Войти</button>
+            <div id="userProfile" class="user-profile" hidden>
+              <span id="userEmail">email@example.com</span>
+              <div class="balance-pill">
+                <span id="userBalanceText">100 фото</span>
+                <button id="topupButton" class="topup-button" type="button">Пополнить</button>
               </div>
-
-              <div id="userAvatar" style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a855f7); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem; overflow: hidden;"></div>
-              <button id="logoutButton" aria-label="Выйти" style="background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0 0.5rem; font-size: 1.25rem; transition: color 0.2s;">&times;</button>
+              <div id="userAvatar" class="user-avatar"></div>
+              <button id="logoutButton" class="logout-button" type="button" aria-label="Выйти">&times;</button>
             </div>
           </div>
         </div>
@@ -216,47 +214,43 @@
       </form>
     </dialog>
 
-    <dialog id="pricingDialog" class="preset-dialog" style="max-width: 800px; padding: 2rem; background: rgba(20,20,20,0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; color: white;">
-      <button class="dialog-close" data-close="pricingDialog" style="position: absolute; top: 1rem; right: 1rem; background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 1.5rem; cursor: pointer;">&times;</button>
-      <div style="text-align: center; margin-bottom: 2rem;">
-        <h2 style="margin: 0; font-size: 1.8rem; font-weight: 600;">Пополнение баланса</h2>
-        <p style="margin: 0.5rem 0 0; color: rgba(255,255,255,0.6); font-size: 0.95rem;">Выберите тариф, который подходит именно вам.</p>
+    <dialog id="pricingDialog" class="pricing-dialog">
+      <button class="dialog-close" data-close="pricingDialog">&times;</button>
+      <div class="pricing-heading">
+        <h2>Пополнение баланса</h2>
+        <p>Выберите тариф, который подходит именно вам.</p>
       </div>
-
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
-        
-        <!-- Tier 1: Free -->
-        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; transition: transform 0.2s, border-color 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.3)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.transform='none'">
+      <div class="pricing-grid">
+        <div class="plan-card">
           <div>
-            <h3 style="margin: 0; font-size: 1.5rem; font-weight: 500;">Free</h3>
-            <p style="margin: 0; color: rgba(255,255,255,0.5); font-size: 0.85rem;">Базовый набор</p>
+            <h3>Free</h3>
+            <p class="plan-tagline">Базовый набор</p>
           </div>
-          <div style="font-size: 2.5rem; font-weight: 700;">$0</div>
-          <ul style="list-style: none; padding: 0; margin: 0; flex: 1; font-size: 0.95rem; color: rgba(255,255,255,0.8); display: flex; flex-direction: column; gap: 0.75rem;">
-            <li>✓ <b>50</b> пробных фото при регистрации</li>
-            <li>✓ <b>+5</b> бесплатных фото каждый день</li>
-            <li>✓ Максимум 1 активный профиль</li>
-            <li>✓ Удаление метаданных</li>
+          <div class="plan-price">$0</div>
+          <ul>
+            <li><b>50</b> пробных фото при регистрации</li>
+            <li><b>+5</b> бесплатных фото каждый день</li>
+            <li>Максимум 1 активный профиль</li>
+            <li>Удаление метаданных</li>
           </ul>
-          <button class="dialog-close" data-close="pricingDialog" style="width: 100%; background: rgba(255,255,255,0.1); color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;">Текущий тариф</button>
+          <button class="plan-button dialog-close-plan" data-close="pricingDialog" type="button">Текущий тариф</button>
         </div>
-
-        <!-- Tier 2: Unlimited -->
-        <div style="background: linear-gradient(180deg, rgba(99,102,241,0.15) 0%, rgba(255,255,255,0.03) 100%); border: 1px solid #6366f1; border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; position: relative; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
-          <div style="position: absolute; top: -10px; right: 1rem; background: linear-gradient(135deg, #6366f1, #a855f7); font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;">ЛУЧШИЙ ВЫБОР</div>
+        <div class="plan-card plan-featured">
+          <div class="plan-badge">ЛУЧШИЙ ВЫБОР</div>
           <div>
-            <h3 style="margin: 0; font-size: 1.5rem; font-weight: 500;">Unlimited 💎</h3>
-            <p style="margin: 0; color: rgba(255,255,255,0.5); font-size: 0.85rem;">Свобода на месяц</p>
+            <h3>Unlimited 💎</h3>
+            <p class="plan-tagline">Свобода на месяц</p>
           </div>
-          <div style="font-size: 2.5rem; font-weight: 700;">$10<span style="font-size: 1rem; color: rgba(255,255,255,0.5); font-weight: normal;"> / мес</span></div>
-          <ul style="list-style: none; padding: 0; margin: 0; flex: 1; font-size: 0.95rem; color: rgba(255,255,255,0.8); display: flex; flex-direction: column; gap: 0.75rem;">
-            <li>✓ <b>Бесконечно</b> фото без ограничений</li>
-            <li>✓ <b>Неограниченное</b> количество профилей</li>
-            <li>✓ Удаление метаданных</li>
-            <li>✓ Поддержка 24/7</li>
+          <div class="plan-price">$10<small> / мес</small></div>
+          <ul>
+            <li><b>Бесконечно</b> фото без ограничений</li>
+            <li><b>Неограниченное</b> количество профилей</li>
+            <li>Удаление метаданных</li>
+            <li>Поддержка 24/7</li>
           </ul>
-          <button class="buy-button" data-tier="unlimited" style="width: 100%; background: #6366f1; color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='#6366f1'">Оформить подписку</button>
+          <button class="plan-button buy-button" data-tier="unlimited" type="button">Оформить подписку</button>
         </div>
+      </div>
     </dialog>
 
     <dialog id="authDialog" class="auth-dialog">
