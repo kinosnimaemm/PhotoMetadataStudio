@@ -324,15 +324,26 @@ fileInput.addEventListener("change", () => {
   addFiles(fileInput.files);
   fileInput.value = "";
 });
-["dragenter", "dragover"].forEach((name) => dropzone.addEventListener(name, (event) => {
+
+window.addEventListener("dragover", (event) => {
   event.preventDefault();
   dropzone.classList.add("dragging");
-}));
-["dragleave", "drop"].forEach((name) => dropzone.addEventListener(name, (event) => {
+});
+
+window.addEventListener("dragleave", (event) => {
+  event.preventDefault();
+  if (event.target === document.documentElement || event.target === document.body) {
+    dropzone.classList.remove("dragging");
+  }
+});
+
+window.addEventListener("drop", (event) => {
   event.preventDefault();
   dropzone.classList.remove("dragging");
-}));
-dropzone.addEventListener("drop", (event) => addFiles(event.dataTransfer.files));
+  if (event.dataTransfer.files.length) {
+    addFiles(event.dataTransfer.files);
+  }
+});
 fileGrid.addEventListener("click", (event) => {
   const move = event.target.closest("[data-move]");
   if (move) {
@@ -657,7 +668,11 @@ async function init() {
       session = data?.session || null;
       updateAuthUI();
     }
-    
+  } catch (err) {
+    console.error("Supabase init error:", err);
+  }
+
+  try {
     const [runtimeInfo] = await Promise.all([
       fetch("/api/runtime").then(res => res.json()),
       loadProfiles()
