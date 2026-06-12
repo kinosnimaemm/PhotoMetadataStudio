@@ -461,3 +461,14 @@ html[data-theme="dark"] .auth-submit { color: #1d1d1f; background: #f5f5f7; }
   .toast-host { left: 12px; right: 12px; justify-items: stretch; }
   .toast { max-width: none; }
 }
+
+.support-btn {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.support-btn:hover {
+  color: var(--text-main);
+}
