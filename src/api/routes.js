@@ -409,12 +409,10 @@ router.get("/download-batch/:token", downloadLimiter, async (req, res) => {
       fs.rm(staging, { recursive: true, force: true }, () => {});
       fs.rm(zipPath, { force: true }, () => {});
       if (err) {
-        // Передача оборвалась — оставляем партию, чтобы можно было скачать повторно
-        logger.error({ error: err.message, batch: token }, "Ошибка при скачивании архива, партия сохранена для повтора");
+        // Передача оборвалась
+        logger.error({ error: err.message, batch: token }, "Ошибка при скачивании архива");
         return;
       }
-      batch.files.forEach((item) => fs.rm(item.path, { force: true }, () => {}));
-      outputBatches.delete(token);
       logger.info({ batch: token }, "Архив успешно скачан");
     });
   } catch (error) {
@@ -437,16 +435,11 @@ router.get("/download/:token/:index", downloadLimiter, (req, res) => {
   
   res.download(item.path, item.name, (err) => {
     if (err) {
-      // Передача оборвалась — файл не трогаем, можно скачать повторно
+      // Передача оборвалась
       logger.warn({ error: err.message, batch: token, file: item.name }, "Скачивание файла прервано");
       return;
     }
-    fs.rm(item.path, { force: true }, () => {});
     batch.downloaded.add(Number(index));
-    if (batch.downloaded.size === batch.files.length) {
-      outputBatches.delete(token);
-      logger.info({ batch: token }, "Все файлы партии скачаны по отдельности, партия удалена");
-    }
   });
 });
 

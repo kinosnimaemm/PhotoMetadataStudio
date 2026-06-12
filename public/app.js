@@ -1194,8 +1194,14 @@ cleanSaveButton.addEventListener("click", async () => {
       }
       const blob = await response.blob();
       const disposition = response.headers.get("content-disposition") || "";
-      const encodedName = disposition.match(/filename\*=UTF-8''([^;]+)/)?.[1];
-      const fileName = encodedName ? decodeURIComponent(encodedName) : "Metadata Studio.zip";
+      let fileName = "Metadata Studio.zip";
+      const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/);
+      if (utf8Match) {
+        fileName = decodeURIComponent(utf8Match[1]);
+      } else {
+        const asciiMatch = disposition.match(/filename="?([^";]+)"?/);
+        if (asciiMatch) fileName = asciiMatch[1];
+      }
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -1258,8 +1264,14 @@ resultList.addEventListener("click", async (e) => {
     
     const blob = await response.blob();
     const disposition = response.headers.get("content-disposition") || "";
-    const encodedName = disposition.match(/filename\*=UTF-8''([^;]+)/)?.[1];
-    const fileName = encodedName ? decodeURIComponent(encodedName) : `photo-${index}.jpg`;
+    let fileName = `photo-${index}.jpg`;
+    const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/);
+    if (utf8Match) {
+      fileName = decodeURIComponent(utf8Match[1]);
+    } else {
+      const asciiMatch = disposition.match(/filename="?([^";]+)"?/);
+      if (asciiMatch) fileName = asciiMatch[1];
+    }
     
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
