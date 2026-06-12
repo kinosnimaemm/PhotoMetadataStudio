@@ -70,7 +70,7 @@ let resultToken = null;
 let previewUrls = [];
 let runtime = { mode: "local", localSave: true, database: false };
 
-let supabase = null;
+let supabaseClient = null;
 let session = null;
 const authBar = $("#authBar");
 const userEmail = $("#userEmail");
@@ -628,9 +628,9 @@ function updateAuthUI() {
 }
 
 googleAuthButton.addEventListener("click", async () => {
-  if (!supabase) return alert("Supabase не настроен.");
+  if (!supabaseClient) return alert("Supabase не настроен.");
   try {
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { error } = await supabaseClient.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin }
     });
@@ -642,8 +642,8 @@ googleAuthButton.addEventListener("click", async () => {
 
 loginButton.addEventListener("click", () => authDialog.showModal());
 logoutButton.addEventListener("click", async () => {
-  if (supabase) {
-    await supabase.auth.signOut();
+  if (supabaseClient) {
+    await supabaseClient.auth.signOut();
     session = null;
     updateAuthUI();
     loadProfiles();
@@ -659,14 +659,14 @@ authToggleMode.addEventListener("click", () => {
 
 authForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  if (!supabase) return alert("Supabase не настроен.");
+  if (!supabaseClient) return alert("Supabase не настроен.");
   authSubmit.disabled = true;
   try {
     const email = $("#authEmail").value;
     const password = $("#authPassword").value;
     const { data, error } = authMode === "login"
-      ? await supabase.auth.signInWithPassword({ email, password })
-      : await supabase.auth.signUp({ email, password });
+      ? await supabaseClient.auth.signInWithPassword({ email, password })
+      : await supabaseClient.auth.signUp({ email, password });
     
     if (error) throw error;
     if (authMode === "register" && !data.session) {
@@ -689,8 +689,8 @@ async function init() {
     const configRes = await fetch("/api/config");
     const config = await configRes.json();
     if (config.supabaseUrl && window.supabase) {
-      supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseKey);
-      const { data } = await supabase.auth.getSession();
+      supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseKey);
+      const { data } = await supabaseClient.auth.getSession();
       session = data?.session || null;
       updateAuthUI();
     }
