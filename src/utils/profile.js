@@ -1,6 +1,7 @@
 // @ts-check
 const crypto = require("node:crypto");
 const path = require("node:path");
+const { isValidTimeZone } = require("./date");
 
 /**
  * @typedef {Object} Profile
@@ -8,6 +9,7 @@ const path = require("node:path");
  * @property {string} name
  * @property {string} [subtitle]
  * @property {string} [description]
+ * @property {string} [timeZone] IANA-таймзона локации профиля (например "America/New_York")
  * @property {Record<string, string>} tags
  */
 
@@ -84,6 +86,7 @@ function validateCustomProfile(raw) {
     name: safeName(data.name).slice(0, 80),
     subtitle: "Пользовательский пресет",
     description: "Локально созданный синтетический профиль.",
+    ...(isValidTimeZone(data.timeZone) ? { timeZone: data.timeZone } : {}),
     tags
   };
 }

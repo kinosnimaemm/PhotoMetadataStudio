@@ -4,6 +4,7 @@
     "name": "New York · iPhone 17 Pro Max",
     "subtitle": "Профиль по умолчанию",
     "description": "iPhone 17 Pro Max с публичной точкой Times Square, New York, United States.",
+    "timeZone": "America/New_York",
     "tags": {
       "EXIF:Make": "Apple",
       "EXIF:Model": "iPhone 17 Pro Max",
@@ -60,6 +61,7 @@
     "name": "Berlin · Brandenburg Gate",
     "subtitle": "Чистый профиль геолокации",
     "description": "Полностью удаляет старые метаданные и записывает только фиксированную точку в центре Берлина.",
+    "timeZone": "Europe/Berlin",
     "tags": {
       "EXIF:GPSLatitude": "52.516275",
       "EXIF:GPSLatitudeRef": "N",
@@ -82,6 +84,7 @@
     "name": "Berlin · iPhone SE 2 (2020)",
     "subtitle": "Профиль исходной камеры",
     "description": "Очищает файл и записывает базовый профиль задней камеры iPhone SE второго поколения с геолокацией в Берлине.",
+    "timeZone": "Europe/Berlin",
     "tags": {
       "EXIF:Make": "Apple",
       "EXIF:Model": "iPhone SE (2nd generation)",
@@ -138,6 +141,7 @@
     "name": "Berlin · iPhone 15 Pro",
     "subtitle": "Устройство + геолокация",
     "description": "Очищает файл, затем добавляет базовые теги Apple iPhone 15 Pro и ту же точку у Бранденбургских ворот.",
+    "timeZone": "Europe/Berlin",
     "tags": {
       "EXIF:Make": "Apple",
       "EXIF:Model": "iPhone 15 Pro",

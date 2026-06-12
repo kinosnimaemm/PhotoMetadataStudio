@@ -10,6 +10,9 @@ const logger = require("../utils/logger");
 const { supabase } = require("../utils/supabase");
 const { processQueue } = require("../utils/queue");
 const { validateCustomProfile, outputName, safeName } = require("../utils/profile");
+const { parseWallTime } = require("../utils/date");
+const { sniffImageFile } = require("../utils/filetype");
+const { createRateLimiter } = require("../utils/ratelimit");
 
 async function requireAuth(req, res, next) {
   const token = req.headers.authorization?.split(" ")[1];
@@ -37,9 +40,22 @@ const MAX_FILES = 10;
 const ALLOWED_EXTENSIONS = new Set([".jpg", ".jpeg", ".heic", ".png", ".tif", ".tiff", ".webp"]);
 
 const outputBatches = new Map();
+// Прогресс обработки по клиентскому токену: { done, total, current }
+const progressByClient = new Map();
 // Note: We need to resolve from project root
 const profiles = JSON.parse(fs.readFileSync(path.join(__dirname, "../../profiles.json"), "utf8"));
 const profileMap = new Map(profiles.map((p) => [p.id, p]));
+
+// Rate limiting тяжёлых эндпоинтов (актуально в облаке; локально не мешает)
+const processLimiter = createRateLimiter({
+  windowMs: 10 * 60 * 1000,
+  max: IS_CLOUD ? 12 : 240,
+  message: "Слишком много партий за короткое время. Подождите несколько минут."
+});
+const downloadLimiter = createRateLimiter({
+  windowMs: 60 * 1000,
+  max: IS_CLOUD ? 60 : 600
+});
 
 router.get("/runtime", (req, res) => {
   res.json({ mode: APP_MODE, localSave: !IS_CLOUD, database: database.configured });
@@ -65,7 +81,7 @@ router.get("/profiles", (req, res) => {
   res.json(profiles);
 });
 
-router.post("/process", (req, res) => {
+router.post("/process", processLimiter, (req, res) => {
   const ac = new AbortController();
   res.on("close", () => {
     if (!res.writableEnded && !res.headersSent) {
@@ -81,10 +97,12 @@ router.post("/process", (req, res) => {
   let namingMode = "iphone";
   let customName = "";
   let startNumber = crypto.randomInt(1, 9990);
-  let startDate = new Date();
+  let startDateRaw = "";
   let intervalSeconds = 45;
+  let clientToken = "";
   let fileTooLarge = false;
   let tooManyFiles = false;
+  let rejectedFile = "";
 
   const busboy = Busboy({
     headers: req.headers,
@@ -97,16 +115,20 @@ router.post("/process", (req, res) => {
     if (name === "namingMode") namingMode = value;
     if (name === "customName") customName = value;
     if (name === "startNumber") startNumber = Math.min(9999, Math.max(1, Number(value) || 1));
-    if (name === "startDate") {
-      const parsed = new Date(value);
-      if (!Number.isNaN(parsed.getTime())) startDate = parsed;
-    }
+    if (name === "startDate") startDateRaw = value;
     if (name === "intervalSeconds") intervalSeconds = Math.min(3600, Math.max(1, Number(value) || 45));
+    if (name === "clientToken") clientToken = String(value).slice(0, 64);
   });
 
   busboy.on("file", (_name, stream, info) => {
     const originalName = safeName(info.filename);
     const extension = path.extname(originalName).toLowerCase();
+    // Ранний отказ: не пишем на диск файлы с неподдерживаемым расширением
+    if (!ALLOWED_EXTENSIONS.has(extension)) {
+      rejectedFile = rejectedFile || originalName;
+      stream.resume();
+      return;
+    }
     const uploadPath = path.join(os.tmpdir(), `metadata-studio-${crypto.randomUUID()}${extension}`);
     const fileWrite = fs.createWriteStream(uploadPath, { flags: "wx" });
     uploads.push({ path: uploadPath, originalName });
@@ -133,29 +155,39 @@ router.post("/process", (req, res) => {
       await Promise.all(writePromises);
       if (tooManyFiles) throw new Error("Можно обработать максимум 10 фотографий.");
       if (fileTooLarge) throw new Error("Один из файлов больше 80 МБ.");
+      if (rejectedFile) throw new Error(`Формат ${rejectedFile} пока не поддерживается.`);
       if (!uploads.length) throw new Error("Фотографии не загружены.");
+      // Проверка магических байтов: расширение легко подделать,
+      // а ExifTool/FFmpeg не должны получать на вход произвольные файлы.
       for (const upload of uploads) {
-        if (!ALLOWED_EXTENSIONS.has(path.extname(upload.originalName).toLowerCase())) {
-          throw new Error(`Формат ${upload.originalName} пока не поддерживается.`);
-        }
+        const kind = await sniffImageFile(upload.path);
+        if (!kind) throw new Error(`Файл ${upload.originalName} не похож на фотографию поддерживаемого формата.`);
       }
       const profile = selectedProfile === "custom" ? validateCustomProfile(customProfile) : profileMap.get(selectedProfile);
       if (!profile) throw new Error("Выбран неизвестный профиль.");
 
+      // Введённое время трактуем как настенное время в таймзоне локации профиля
+      const startDate = (startDateRaw && parseWallTime(startDateRaw, profile.timeZone)) || new Date();
+
       const token = crypto.randomUUID();
       const processed = [];
       logger.info({ batch: token, count: uploads.length, profile: profile.name }, "Начало обработки партии");
-      
+
+      if (clientToken) progressByClient.set(clientToken, { done: 0, total: uploads.length, current: "" });
+
       for (let index = 0; index < uploads.length; index += 1) {
         if (ac.signal.aborted) throw new Error("Обработка отменена пользователем.");
         const upload = uploads[index];
         const captureDate = new Date(startDate.getTime() + index * intervalSeconds * 1000);
+        const name = outputName(upload.originalName, namingMode, customName, index, startNumber);
+        if (clientToken) progressByClient.set(clientToken, { done: index, total: uploads.length, current: name });
         await processQueue.add(() => runExifTool(upload.path, profile, captureDate, index, ac.signal), ac.signal);
         processed.push({
           path: upload.path,
-          name: outputName(upload.originalName, namingMode, customName, index, startNumber),
+          name,
           captureDate: captureDate.toISOString()
         });
+        if (clientToken) progressByClient.set(clientToken, { done: index + 1, total: uploads.length, current: name });
       }
       
       outputBatches.set(token, { files: processed, profile: profile.name, downloaded: new Set() });
@@ -163,7 +195,7 @@ router.post("/process", (req, res) => {
       
       setTimeout(() => {
         const batch = outputBatches.get(token);
-        if (batch && !batch.savedFolder) {
+        if (batch) {
           batch.files.forEach((item) => fs.rm(item.path, { force: true }, () => {}));
           logger.info({ batch: token }, "Временные файлы партии удалены по таймауту");
         }
@@ -183,10 +215,22 @@ router.post("/process", (req, res) => {
       if (!res.headersSent) {
         res.status(400).json({ error: error.message });
       }
+    } finally {
+      if (clientToken) {
+        // Даём фронтенду секунду забрать финальный статус, затем чистим
+        const finishedToken = clientToken;
+        setTimeout(() => progressByClient.delete(finishedToken), 5000).unref();
+      }
     }
   });
 
   req.pipe(busboy);
+});
+
+router.get("/progress/:clientToken", (req, res) => {
+  const progress = progressByClient.get(req.params.clientToken);
+  if (!progress) return res.status(404).json({ error: "Нет данных о прогрессе." });
+  res.json(progress);
 });
 
 function uniqueDestination(directory, fileName) {
@@ -261,7 +305,7 @@ router.post("/save/:token", async (req, res) => {
   }
 });
 
-router.get("/download-batch/:token", async (req, res) => {
+router.get("/download-batch/:token", downloadLimiter, async (req, res) => {
   const { token } = req.params;
   const batch = outputBatches.get(token);
   if (!batch || !batch.files.length || !batch.files.every((item) => fs.existsSync(item.path))) {
@@ -285,12 +329,17 @@ router.get("/download-batch/:token", async (req, res) => {
     const fileName = `Metadata Studio ${new Date().toISOString().slice(0, 10)}.zip`;
     
     res.download(zipPath, fileName, (err) => {
-      batch.files.forEach((item) => fs.rm(item.path, { force: true }, () => {}));
-      outputBatches.delete(token);
+      // Staging и сам ZIP больше не нужны в любом случае
       fs.rm(staging, { recursive: true, force: true }, () => {});
       fs.rm(zipPath, { force: true }, () => {});
-      if (err) logger.error({ error: err.message }, "Ошибка при скачивании архива");
-      else logger.info({ batch: token }, "Архив успешно скачан");
+      if (err) {
+        // Передача оборвалась — оставляем партию, чтобы можно было скачать повторно
+        logger.error({ error: err.message, batch: token }, "Ошибка при скачивании архива, партия сохранена для повтора");
+        return;
+      }
+      batch.files.forEach((item) => fs.rm(item.path, { force: true }, () => {}));
+      outputBatches.delete(token);
+      logger.info({ batch: token }, "Архив успешно скачан");
     });
   } catch (error) {
     fs.rm(staging, { recursive: true, force: true }, () => {});
@@ -301,7 +350,7 @@ router.get("/download-batch/:token", async (req, res) => {
   }
 });
 
-router.get("/download/:token/:index", (req, res) => {
+router.get("/download/:token/:index", downloadLimiter, (req, res) => {
   const { token, index } = req.params;
   const batch = outputBatches.get(token);
   const item = batch?.files[Number(index)];
@@ -311,6 +360,11 @@ router.get("/download/:token/:index", (req, res) => {
   }
   
   res.download(item.path, item.name, (err) => {
+    if (err) {
+      // Передача оборвалась — файл не трогаем, можно скачать повторно
+      logger.warn({ error: err.message, batch: token, file: item.name }, "Скачивание файла прервано");
+      return;
+    }
     fs.rm(item.path, { force: true }, () => {});
     batch.downloaded.add(Number(index));
     if (batch.downloaded.size === batch.files.length) {

@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { runCommand } = require("./exec");
 const { variedTags, isCameraProfile, isIphoneProfile } = require("./profile");
-const { exifDate, iptcTime, pad, gpsDate, gpsTime, iptcDate } = require("./date");
+const { exifDate, iptcTime, offsetString, pad, gpsDate, gpsTime, iptcDate } = require("./date");
 
 const EXIFTOOL_BIN = process.env.EXIFTOOL_BIN || "exiftool";
 const FFMPEG_BIN = process.env.FFMPEG_BIN || "ffmpeg";
@@ -50,8 +50,11 @@ const SRGB_PROFILE = resolveIccProfile([
  * @param {AbortSignal} [signal]
  */
 async function runExifTool(filePath, profile, captureDate, index, signal) {
-  const timestamp = exifDate(captureDate);
-  const offset = iptcTime(captureDate).slice(-6);
+  // Таймзона локации профиля: настенное время и OffsetTime согласуются с GPS,
+  // даже когда сервер работает в UTC (облако).
+  const timeZone = profile.timeZone;
+  const timestamp = exifDate(captureDate, timeZone);
+  const offset = offsetString(captureDate, timeZone);
   const subseconds = pad(captureDate.getMilliseconds(), 3);
   let thumbnailPath = "";
 
@@ -97,10 +100,10 @@ async function runExifTool(filePath, profile, captureDate, index, signal) {
       `-EXIF:SubSecTimeDigitized=${subseconds}`,
       `-EXIF:GPSDateStamp=${gpsDate(captureDate)}`,
       `-EXIF:GPSTimeStamp=${gpsTime(captureDate)}`,
-      `-IPTC:DateCreated=${iptcDate(captureDate)}`,
-      `-IPTC:TimeCreated=${iptcTime(captureDate)}`,
-      `-IPTC:DigitalCreationDate=${iptcDate(captureDate)}`,
-      `-IPTC:DigitalCreationTime=${iptcTime(captureDate)}`,
+      `-IPTC:DateCreated=${iptcDate(captureDate, timeZone)}`,
+      `-IPTC:TimeCreated=${iptcTime(captureDate, timeZone)}`,
+      `-IPTC:DigitalCreationDate=${iptcDate(captureDate, timeZone)}`,
+      `-IPTC:DigitalCreationTime=${iptcTime(captureDate, timeZone)}`,
       "-EXIF:ExifImageWidth<File:ImageWidth",
       "-EXIF:ExifImageHeight<File:ImageHeight"
     );
