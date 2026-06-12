@@ -313,6 +313,19 @@ document.addEventListener("DOMContentLoaded", () => {
   updateAuthUI();
   applyLang();
   
+  // Global error catcher for debugging
+  window.addEventListener('error', (event) => {
+    toast("Global Error: " + event.message);
+  });
+  window.addEventListener('unhandledrejection', (event) => {
+    toast("Unhandled Promise: " + (event.reason?.message || event.reason));
+  });
+  const originalConsoleError = console.error;
+  console.error = function(...args) {
+    originalConsoleError.apply(console, args);
+    toast("Console Error: " + args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+  };
+
   // Parse OAuth errors from URL hash or query string
   const urlParams = new URLSearchParams(window.location.search);
   const hashParams = new URLSearchParams(window.location.hash.slice(1));
