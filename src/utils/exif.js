@@ -83,10 +83,7 @@ async function runExifTool(filePath, profile, captureDate, index, signal) {
   for (const [tag, value] of Object.entries(variedTags(profile, index))) {
     args.push(`-${tag}=${value}`);
   }
-  args.push(
-    "-XMP-xmp:CreatorTool=Metadata Studio",
-    "-XMP-dc:Description=Synthetic metadata profile applied locally; capture provenance not verified"
-  );
+
   if (isCameraProfile(profile)) {
     args.push(
       `-EXIF:ModifyDate=${timestamp}`,
