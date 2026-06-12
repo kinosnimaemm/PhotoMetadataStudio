@@ -23,6 +23,8 @@
           <span class="trust-icon">✓</span>
           <p><strong>Your photos stay protected.</strong> They are deleted from the local server immediately after saving.</p>
           <div class="auth-bar" id="authBar" style="display: flex; align-items: center; gap: 0.75rem;">
+            <button id="langToggle" class="icon-toggle lang-toggle" type="button" title="Language">EN</button>
+            <button id="themeToggle" class="icon-toggle" type="button" title="Тема: авто">◐</button>
             <button id="loginButton" class="mini-action" style="padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;">Войти в аккаунт</button>
             <div id="userProfile" style="display: none; align-items: center; gap: 0.75rem; background: rgba(255,255,255,0.6); padding: 0.25rem 0.25rem 0.25rem 0.75rem; border-radius: 30px; border: 1px solid rgba(0,0,0,0.05);">
               <span id="userEmail" style="font-size: 0.75rem; color: var(--ink); font-weight: 600;">email@example.com</span>
@@ -180,33 +182,9 @@
 
           <section class="builder-card">
             <div class="builder-card-title"><span>02</span><div><b>Локация</b><small>Готовая точка или клик по карте</small></div></div>
+            <input id="locationSearch" type="search" placeholder="Поиск: страна, штат, город… (США, Флорида, Майами)">
             <label class="location-select-label">Выберите место
-            <select id="presetLocation">
-              <optgroup label="Germany">
-                <option value="gate">Berlin · Brandenburg Gate</option>
-                <option value="alex">Berlin · Alexanderplatz</option>
-                <option value="munich">Munich · Marienplatz</option>
-              </optgroup>
-              <optgroup label="United States">
-                <option value="times">New York · Times Square</option>
-                <option value="central">New York · Central Park</option>
-                <option value="hollywood">Los Angeles · Hollywood Boulevard</option>
-                <option value="miami">Miami · South Beach</option>
-                <option value="golden">San Francisco · Golden Gate Bridge</option>
-              </optgroup>
-              <optgroup label="Europe">
-                <option value="london">London · Piccadilly Circus</option>
-                <option value="paris">Paris · Eiffel Tower</option>
-                <option value="rome">Rome · Colosseum</option>
-                <option value="madrid">Madrid · Puerta del Sol</option>
-                <option value="amsterdam">Amsterdam · Dam Square</option>
-              </optgroup>
-              <optgroup label="World">
-                <option value="dubai">Dubai · Burj Khalifa</option>
-                <option value="tokyo">Tokyo · Shibuya Crossing</option>
-              </optgroup>
-              <option value="custom">Свои координаты</option>
-            </select>
+            <select id="presetLocation" size="6"></select>
             </label>
             <div id="presetMap" class="preset-map"></div>
             <div class="location-preview">
