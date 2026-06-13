@@ -71,8 +71,8 @@ function variedTags(profile, index, dynamicGps = true) {
     const latOffset = (Math.random() * 0.36 - 0.18);
     const lonOffset = (Math.random() * 0.36 - 0.18);
     
-    tags["EXIF:GPSLatitude"] = Math.max(0, latBase + latOffset).toFixed(6);
-    tags["EXIF:GPSLongitude"] = Math.max(0, lonBase + lonOffset).toFixed(6);
+    tags["EXIF:GPSLatitude"] = Math.abs(latBase + latOffset).toFixed(6);
+    tags["EXIF:GPSLongitude"] = Math.abs(lonBase + lonOffset).toFixed(6);
   }
   
   return tags;
