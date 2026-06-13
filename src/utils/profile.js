@@ -63,6 +63,17 @@ function variedTags(profile, index) {
   tags["EXIF:ExposureTime"] = `1/${Math.max(1, Math.round(exposureBase * (exposureFactors[index] || 1)))}`;
   tags["EXIF:GPSImgDirection"] = String((directionBase + index * 7) % 360);
   
+  if (tags["EXIF:GPSLatitude"] && tags["EXIF:GPSLongitude"]) {
+    // Dynamic AI: random geo offset within ~20km radius (0.18 degrees)
+    const latBase = Number(tags["EXIF:GPSLatitude"]);
+    const lonBase = Number(tags["EXIF:GPSLongitude"]);
+    const latOffset = (Math.random() * 0.36 - 0.18);
+    const lonOffset = (Math.random() * 0.36 - 0.18);
+    
+    tags["EXIF:GPSLatitude"] = Math.max(0, latBase + latOffset).toFixed(6);
+    tags["EXIF:GPSLongitude"] = Math.max(0, lonBase + lonOffset).toFixed(6);
+  }
+  
   return tags;
 }
 

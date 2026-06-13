@@ -627,10 +627,18 @@ function profileCard(profile) {
   const label = document.createElement("label");
   label.className = `profile-option${profile.custom ? " custom-profile" : ""}`;
   label.dataset.id = profile.id;
+  const cityMatch = profile.name.split('·')[0].trim();
+  const cityName = cityMatch ? escapeHtml(cityMatch) : "выбранную локацию";
+  const locName = cityMatch ? escapeHtml(cityMatch) : "этой локации";
+  const aiTooltip = `Вы выбрали ${cityName}. Динамический AI ставит вам рандомную геопозицию в районе 20 км в ${locName}, чтобы сделать максимально похожее на человеческое поведение.`;
+
   label.innerHTML = `
     <input type="radio" name="profile" value="${escapeHtml(profile.id)}">
     <span class="radio"></span>
-    <strong>${escapeHtml(profile.name)}</strong>
+    <div class="profile-title">
+      <strong>${escapeHtml(profile.name)}</strong>
+      <span class="ai-badge" title="${aiTooltip}">✨ Динамичный AI</span>
+    </div>
     <small>${escapeHtml(profile.subtitle)}</small>
     <button type="button" class="delete-preset" data-delete="${escapeHtml(profile.id)}" aria-label="Удалить пресет" title="Удалить пресет">×</button>
   `;
