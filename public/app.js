@@ -578,7 +578,7 @@ function renderPassport(profile) {
   const lon = Number(tags["EXIF:GPSLongitude"]);
   const latRef = tags["EXIF:GPSLatitudeRef"] === "S" ? "-" : "";
   const lonRef = tags["EXIF:GPSLongitudeRef"] === "W" ? "-" : "";
-  const place = [tags["IPTC:Sub-location"], tags["IPTC:City"]].filter(Boolean).join(", ");
+  const place = [profile.name.split("·")[0].trim()].filter(Boolean).join(", ");
   $("#passportDevice").textContent = device;
   $("#passportLocation").textContent = place || "—";
   $("#passportGps").textContent = Number.isFinite(lat) && Number.isFinite(lon)
@@ -715,10 +715,8 @@ function buildCustomPreset() {
     "EXIF:GPSLongitude": String(Math.abs(location.lon)), "EXIF:GPSLongitudeRef": location.lon >= 0 ? "E" : "W",
     "EXIF:GPSAltitude": String(location.altitude), "EXIF:GPSAltitudeRef#": "0",
     "EXIF:GPSMapDatum": "WGS-84", "EXIF:GPSImgDirectionRef": "M", "EXIF:GPSImgDirection": "315",
-    "IPTC:City": location.city, "IPTC:Country-PrimaryLocationName": location.country,
-    "IPTC:Sub-location": location.label, "XMP-photoshop:City": location.city,
-    "XMP-photoshop:Country": location.country, "XMP-iptcCore:CountryCode": location.countryCode,
-    "XMP-iptcCore:Location": location.label
+    "EXIF:GPSImgDirection": Math.floor(Math.random() * 360).toString(),
+    "EXIF:GPSImgDirectionRef": "M"
   };
   return {
     id: `custom-${Date.now()}`,

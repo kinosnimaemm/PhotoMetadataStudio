@@ -43,17 +43,7 @@
       "EXIF:GPSImgDirectionRef": "M",
       "EXIF:GPSImgDirection": "210",
       "EXIF:GPSMapDatum": "WGS-84",
-      "EXIF:GPSHPositioningError": "12",
-      "IPTC:City": "New York",
-      "IPTC:Province-State": "New York",
-      "IPTC:Country-PrimaryLocationName": "United States",
-      "IPTC:Country-PrimaryLocationCode": "USA",
-      "IPTC:Sub-location": "Times Square, 1 Times Square",
-      "XMP-photoshop:City": "New York",
-      "XMP-photoshop:State": "New York",
-      "XMP-photoshop:Country": "United States",
-      "XMP-iptcCore:CountryCode": "US",
-      "XMP-iptcCore:Location": "Times Square, 1 Times Square"
+      "EXIF:GPSHPositioningError": "12"
     }
   },
   {
@@ -100,17 +90,7 @@
       "EXIF:GPSImgDirectionRef": "M",
       "EXIF:GPSImgDirection": "90",
       "EXIF:GPSMapDatum": "WGS-84",
-      "EXIF:GPSHPositioningError": "10",
-      "IPTC:City": "Paris",
-      "IPTC:Province-State": "Île-de-France",
-      "IPTC:Country-PrimaryLocationName": "France",
-      "IPTC:Country-PrimaryLocationCode": "FRA",
-      "IPTC:Sub-location": "Eiffel Tower",
-      "XMP-photoshop:City": "Paris",
-      "XMP-photoshop:State": "Île-de-France",
-      "XMP-photoshop:Country": "France",
-      "XMP-iptcCore:CountryCode": "FR",
-      "XMP-iptcCore:Location": "Eiffel Tower"
+      "EXIF:GPSHPositioningError": "10"
     }
   },
   {
@@ -157,17 +137,7 @@
       "EXIF:GPSImgDirectionRef": "M",
       "EXIF:GPSImgDirection": "315",
       "EXIF:GPSMapDatum": "WGS-84",
-      "EXIF:GPSHPositioningError": "15",
-      "IPTC:City": "Berlin",
-      "IPTC:Province-State": "Berlin",
-      "IPTC:Country-PrimaryLocationName": "Germany",
-      "IPTC:Country-PrimaryLocationCode": "DEU",
-      "IPTC:Sub-location": "Brandenburg Gate",
-      "XMP-photoshop:City": "Berlin",
-      "XMP-photoshop:State": "Berlin",
-      "XMP-photoshop:Country": "Germany",
-      "XMP-iptcCore:CountryCode": "DE",
-      "XMP-iptcCore:Location": "Brandenburg Gate"
+      "EXIF:GPSHPositioningError": "15"
     }
   },
   {
@@ -214,17 +184,7 @@
       "EXIF:GPSImgDirectionRef": "M",
       "EXIF:GPSImgDirection": "180",
       "EXIF:GPSMapDatum": "WGS-84",
-      "EXIF:GPSHPositioningError": "8",
-      "IPTC:City": "London",
-      "IPTC:Province-State": "England",
-      "IPTC:Country-PrimaryLocationName": "United Kingdom",
-      "IPTC:Country-PrimaryLocationCode": "GBR",
-      "IPTC:Sub-location": "Big Ben",
-      "XMP-photoshop:City": "London",
-      "XMP-photoshop:State": "England",
-      "XMP-photoshop:Country": "United Kingdom",
-      "XMP-iptcCore:CountryCode": "GB",
-      "XMP-iptcCore:Location": "Big Ben"
+      "EXIF:GPSHPositioningError": "8"
     }
   }
 ]
