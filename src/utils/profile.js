@@ -45,8 +45,9 @@ function safeName(name) {
  * @param {Profile} profile 
  * @param {number} index Индекс фотографии в партии
  * @returns {Record<string, string>}
+ * @param {boolean} [dynamicGps=true] Включить ли динамический сдвиг координат
  */
-function variedTags(profile, index) {
+function variedTags(profile, index, dynamicGps = true) {
   const tags = { ...profile.tags };
   if (!isCameraProfile(profile)) return tags;
   
@@ -63,7 +64,7 @@ function variedTags(profile, index) {
   tags["EXIF:ExposureTime"] = `1/${Math.max(1, Math.round(exposureBase * (exposureFactors[index] || 1)))}`;
   tags["EXIF:GPSImgDirection"] = String((directionBase + index * 7) % 360);
   
-  if (tags["EXIF:GPSLatitude"] && tags["EXIF:GPSLongitude"]) {
+  if (dynamicGps && tags["EXIF:GPSLatitude"] && tags["EXIF:GPSLongitude"]) {
     // Dynamic AI: random geo offset within ~20km radius (0.18 degrees)
     const latBase = Number(tags["EXIF:GPSLatitude"]);
     const lonBase = Number(tags["EXIF:GPSLongitude"]);

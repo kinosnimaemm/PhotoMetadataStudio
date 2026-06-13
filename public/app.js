@@ -637,7 +637,17 @@ function profileCard(profile) {
     <span class="radio"></span>
     <div class="profile-title">
       <strong>${escapeHtml(profile.name)}</strong>
-      <span class="ai-badge" title="${aiTooltip}">✨ Динамичный AI</span>
+      <div class="dynamic-gps-badge" onclick="event.stopPropagation()">
+        <label class="switch" title="Включить симуляцию движения">
+          <input type="checkbox" class="gps-toggle" checked>
+          <span class="slider round"></span>
+        </label>
+        <span class="badge-text">📍 Умный GPS</span>
+        <div class="info-icon">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          <div class="tooltip-box">${aiTooltip}</div>
+        </div>
+      </div>
     </div>
     <small>${escapeHtml(profile.subtitle)}</small>
     <button type="button" class="delete-preset" data-delete="${escapeHtml(profile.id)}" aria-label="Удалить пресет" title="Удалить пресет">×</button>
@@ -1075,6 +1085,10 @@ processButton.addEventListener("click", async () => {
   formData.append("startDate", startDate.value);
   formData.append("intervalSeconds", intervalSeconds.value);
   formData.append("clientToken", clientToken);
+
+  const selectedLabel = document.querySelector(`label[data-id="${selectedProfile.id}"]`);
+  const gpsToggle = selectedLabel ? selectedLabel.querySelector(".gps-toggle") : null;
+  formData.append("dynamicGps", gpsToggle ? gpsToggle.checked : true);
 
   // Живой прогресс: опрашиваем сервер, пока идёт обработка
   const statusNode = $("#processingStatus");

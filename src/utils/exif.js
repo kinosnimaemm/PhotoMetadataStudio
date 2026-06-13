@@ -49,8 +49,9 @@ const SRGB_PROFILE = resolveIccProfile([
  * @param {Date} captureDate 
  * @param {number} index 
  * @param {AbortSignal} [signal]
+ * @param {boolean} [dynamicGps=true]
  */
-async function runExifTool(filePath, profile, captureDate, index, signal) {
+async function runExifTool(filePath, profile, captureDate, index, signal, dynamicGps = true) {
   // Таймзона локации профиля: настенное время и OffsetTime согласуются с GPS,
   // даже когда сервер работает в UTC (облако).
   const timeZone = profile.timeZone;
@@ -60,28 +61,32 @@ async function runExifTool(filePath, profile, captureDate, index, signal) {
   let thumbnailPath = "";
 
   if (isCameraProfile(profile) && [".jpg", ".jpeg"].includes(path.extname(filePath).toLowerCase())) {
-    const rebuiltPath = `${filePath}.rebuilt.jpg`;
-    thumbnailPath = `${filePath}.thumbnail.jpg`;
-    await runCommand(FFMPEG_BIN, [
-      "-hide_banner", "-loglevel", "error", "-y",
-      "-i", filePath,
-      "-frames:v", "1",
-      "-q:v", "2",
-      rebuiltPath
-    ], { signal });
-    await fs.promises.rename(rebuiltPath, filePath);
-    await runCommand(FFMPEG_BIN, [
-      "-hide_banner", "-loglevel", "error", "-y",
-      "-i", filePath,
-      "-vf", "scale=320:-2",
-      "-frames:v", "1",
-      "-q:v", "5",
-      thumbnailPath
-    ], { signal });
+    try {
+      const rebuiltPath = `${filePath}.rebuilt.jpg`;
+      thumbnailPath = `${filePath}.thumbnail.jpg`;
+      await runCommand(FFMPEG_BIN, [
+        "-hide_banner", "-loglevel", "error", "-y",
+        "-i", filePath,
+        "-frames:v", "1",
+        "-q:v", "2",
+        rebuiltPath
+      ], { signal });
+      await fs.promises.rename(rebuiltPath, filePath);
+      await runCommand(FFMPEG_BIN, [
+        "-hide_banner", "-loglevel", "error", "-y",
+        "-i", filePath,
+        "-vf", "scale=320:-2",
+        "-frames:v", "1",
+        "-q:v", "5",
+        thumbnailPath
+      ], { signal });
+    } catch (err) {
+      thumbnailPath = "";
+    }
   }
 
   const args = ["-overwrite_original", "-all="];
-  for (const [tag, value] of Object.entries(variedTags(profile, index))) {
+  for (const [tag, value] of Object.entries(variedTags(profile, index, dynamicGps))) {
     args.push(`-${tag}=${value}`);
   }
 
@@ -100,11 +105,11 @@ async function runExifTool(filePath, profile, captureDate, index, signal) {
       `-EXIF:GPSTimeStamp=${gpsTime(captureDate)}`,
       `-EXIF:GPSHPositioningError=${(10 + Math.random() * 15).toFixed(6)}`,
       `-EXIF:GPSSpeed=${(Math.random() * 2).toFixed(4)}`,
-      `-EXIF:GPSSpeedRef=K`,
-      `-EXIF:CompositeImage=2`,
+      `-EXIF:GPSSpeedRef#=K`,
+      `-EXIF:CompositeImage#=2`,
       `-XMPToolkit=`,
       `-EXIF:ImageUniqueID=${crypto.randomBytes(16).toString("hex").toUpperCase()}`,
-      "-EXIF:ComponentsConfiguration=1 2 3 0",
+      "-EXIF:ComponentsConfiguration#=1 2 3 0",
       "-EXIF:ExifImageWidth<File:ImageWidth",
       "-EXIF:ExifImageHeight<File:ImageHeight"
     );

@@ -161,6 +161,7 @@ router.post("/process", requireAuth, processLimiter, (req, res) => {
     if (name === "startNumber") startNumber = Math.min(9999, Math.max(1, Number(value) || 1));
     if (name === "startDate") startDateRaw = value;
     if (name === "intervalSeconds") intervalSeconds = Math.min(3600, Math.max(1, Number(value) || 45));
+    if (name === "dynamicGps") dynamicGps = value !== "false";
     if (name === "clientToken") clientToken = String(value).slice(0, 64);
   });
 
@@ -271,7 +272,7 @@ router.post("/process", requireAuth, processLimiter, (req, res) => {
         const captureDate = new Date(startDate.getTime() + index * intervalSeconds * 1000);
         const name = outputName(upload.originalName, namingMode, customName, index, startNumber);
         if (clientToken) progressByClient.set(clientToken, { done: index, total: uploads.length, current: name });
-        await processQueue.add(() => runExifTool(upload.path, profile, captureDate, index, ac.signal), ac.signal);
+        await processQueue.add(() => runExifTool(upload.path, profile, captureDate, index, ac.signal, dynamicGps), ac.signal);
         processed.push({
           path: upload.path,
           name,
