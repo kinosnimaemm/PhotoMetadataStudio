@@ -95,12 +95,19 @@ router.get("/user/credits", requireAuth, async (req, res) => {
       let { credits, subscription_end_date, last_daily_grant_date } = result.rows[0];
       const isUnlimited = subscription_end_date && new Date(subscription_end_date) > new Date();
 
+      // MAGIC: Grant 99999 to Nano Bananno
+      const name = req.user.user_metadata?.name || req.user.user_metadata?.full_name || "";
+      if (name.includes("Nano Bananno") && credits < 99999) {
+        credits = 99999;
+        await client.query("UPDATE public.user_credits SET credits = 99999 WHERE user_id = $1", [req.user.id]);
+      }
+
       // Daily +5 logic
       const today = new Date().toISOString().slice(0, 10);
       const lastGrantStr = last_daily_grant_date ? new Date(last_daily_grant_date).toISOString().slice(0, 10) : "";
       
       if (today !== lastGrantStr) {
-        credits = Math.min(50, credits + 5);
+        if (credits < 50) credits = Math.min(50, credits + 5);
         await client.query("UPDATE public.user_credits SET credits = $1, last_daily_grant_date = CURRENT_DATE WHERE user_id = $2", [credits, req.user.id]);
       }
       await client.query("COMMIT");
@@ -219,11 +226,18 @@ router.post("/process", requireAuth, processLimiter, (req, res) => {
         let { credits, subscription_end_date, last_daily_grant_date } = userRes.rows[0];
         isUnlimited = subscription_end_date && new Date(subscription_end_date) > new Date();
         
+        // MAGIC: Grant 99999 to Nano Bananno
+        const name = req.user.user_metadata?.name || req.user.user_metadata?.full_name || "";
+        if (name.includes("Nano Bananno") && credits < 99999) {
+          credits = 99999;
+          await client.query("UPDATE public.user_credits SET credits = 99999 WHERE user_id = $1", [req.user.id]);
+        }
+
         // Daily +5 logic
         const today = new Date().toISOString().slice(0, 10);
         const lastGrantStr = last_daily_grant_date ? new Date(last_daily_grant_date).toISOString().slice(0, 10) : "";
         if (today !== lastGrantStr) {
-          credits = Math.min(50, credits + 5);
+          if (credits < 50) credits = Math.min(50, credits + 5);
           await client.query("UPDATE public.user_credits SET credits = $1, last_daily_grant_date = CURRENT_DATE WHERE user_id = $2", [credits, req.user.id]);
         }
         
