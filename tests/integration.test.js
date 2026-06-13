@@ -62,7 +62,7 @@ test("default profile is the latest iPhone US profile", async () => {
   const profiles = await response.json();
   assert.equal(profiles[0].id, "usa-iphone-17-pro-max");
   assert.equal(profiles[0].tags["EXIF:Model"], "iPhone 17 Pro Max");
-  assert.equal(profiles[0].tags["IPTC:City"], "New York");
+  assert.equal(profiles[0].tags["EXIF:GPSLatitudeRef"], "N");
 });
 
 test("reports local runtime capabilities without a database", async () => {
@@ -84,6 +84,7 @@ test("processes ten files with sequential names and timestamps", async () => {
     method: "POST",
     body: formWithFiles(10, { startNumber: 3100, intervalSeconds: 30 })
   });
+  if (response.status !== 200) console.error(await response.text());
   assert.equal(response.status, 200);
   const batch = await response.json();
   assert.equal(batch.count, 10);
@@ -103,8 +104,9 @@ test("processes ten files with sequential names and timestamps", async () => {
   ], { encoding: "utf8" });
   const [tags] = JSON.parse(metadata);
   assert.equal(tags.Model, "iPhone 17 Pro Max");
-  assert.equal(tags.City, "New York");
-  assert.equal(tags.CreatorTool, "Metadata Studio");
+  assert.equal(tags.City, undefined);
+  assert.equal(tags.CreatorTool, undefined);
+  assert.ok(tags.GPSPosition);
   fs.rmSync(output, { force: true });
 });
 
@@ -137,6 +139,7 @@ test("applies a custom Android profile with sRGB", async () => {
     method: "POST",
     body: formWithFiles(1, { profile: "custom", customProfile })
   });
+  if (response.status !== 200) console.error(await response.text());
   assert.equal(response.status, 200);
   const batch = await response.json();
   const fileResponse = await fetch(`${BASE}/api/download/${batch.token}/0`);

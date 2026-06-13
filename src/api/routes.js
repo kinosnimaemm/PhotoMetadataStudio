@@ -144,6 +144,7 @@ router.post("/process", requireAuth, processLimiter, (req, res) => {
   let startDateRaw = "";
   let intervalSeconds = 45;
   let clientToken = "";
+  let dynamicGps = true;
   let fileTooLarge = false;
   let tooManyFiles = false;
   let rejectedFile = "";
@@ -428,6 +429,10 @@ router.get("/download-batch/:token", downloadLimiter, async (req, res) => {
         logger.error({ error: err.message, batch: token }, "Ошибка при скачивании архива");
         return;
       }
+      for (const item of batch.files) {
+        fs.rm(item.path, { force: true }, () => {});
+      }
+      outputBatches.delete(token);
       logger.info({ batch: token }, "Архив успешно скачан");
     });
   } catch (error) {
