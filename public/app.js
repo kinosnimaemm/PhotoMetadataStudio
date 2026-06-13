@@ -635,21 +635,22 @@ function profileCard(profile) {
   label.innerHTML = `
     <input type="radio" name="profile" value="${escapeHtml(profile.id)}">
     <span class="radio"></span>
-    <div class="profile-title">
-      <strong>${escapeHtml(profile.name)}</strong>
-      <div class="dynamic-gps-badge" onclick="event.stopPropagation()">
-        <label class="switch" title="Включить симуляцию движения">
-          <input type="checkbox" class="gps-toggle" checked>
-          <span class="slider round"></span>
-        </label>
-        <span class="badge-text">📍 Умный GPS</span>
-        <div class="info-icon">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-          <div class="tooltip-box">${aiTooltip}</div>
+    
+    <div style="flex: 1; padding-right: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <strong style="font-size: 14px;">${escapeHtml(profile.name)}</strong>
+        
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary);" onclick="event.stopPropagation()">
+          <span title="${aiTooltip}" style="cursor: help;">📍 Умный GPS</span>
+          <label class="switch" style="margin: 0; transform: scale(0.8); transform-origin: right center;">
+            <input type="checkbox" class="gps-toggle" checked>
+            <span class="slider round"></span>
+          </label>
         </div>
       </div>
+      <small style="display: block; color: var(--text-secondary); line-height: 1.4;">${escapeHtml(profile.subtitle)}</small>
     </div>
-    <small>${escapeHtml(profile.subtitle)}</small>
+
     <button type="button" class="delete-preset" data-delete="${escapeHtml(profile.id)}" aria-label="Удалить пресет" title="Удалить пресет">×</button>
   `;
   label.addEventListener("click", (event) => {
