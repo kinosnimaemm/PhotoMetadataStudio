@@ -1075,7 +1075,8 @@ processButton.addEventListener("click", async () => {
 
   const clientToken = crypto.randomUUID ? crypto.randomUUID() : `c-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const formData = new FormData();
-  selectedFiles.forEach((file) => formData.append("photos", file));
+  formData.append("clientToken", clientToken);
+  formData.append("totalFiles", selectedFiles.length);
   formData.append("profile", selectedProfile.custom ? "custom" : selectedProfile.id);
   if (selectedProfile.custom) formData.append("customProfile", JSON.stringify(selectedProfile));
   formData.append("namingMode", namingMode);
@@ -1083,11 +1084,13 @@ processButton.addEventListener("click", async () => {
   formData.append("startNumber", startNumber.value);
   formData.append("startDate", startDate.value);
   formData.append("intervalSeconds", intervalSeconds.value);
-  formData.append("clientToken", clientToken);
-
+  
   const selectedLabel = document.querySelector(`label[data-id="${selectedProfile.id}"]`);
   const gpsToggle = selectedLabel ? selectedLabel.querySelector(".gps-toggle") : null;
   formData.append("dynamicGps", gpsToggle ? gpsToggle.checked : true);
+
+  // Files must be appended LAST so the server reads fields first
+  selectedFiles.forEach((file) => formData.append("photos", file));
 
   // Живой прогресс: опрашиваем сервер, пока идёт обработка
   const statusNode = $("#processingStatus");

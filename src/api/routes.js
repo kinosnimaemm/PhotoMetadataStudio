@@ -164,6 +164,12 @@ router.post("/process", requireAuth, processLimiter, (req, res) => {
     if (name === "intervalSeconds") intervalSeconds = Math.min(3600, Math.max(1, Number(value) || 45));
     if (name === "dynamicGps") dynamicGps = value !== "false";
     if (name === "clientToken") clientToken = String(value).slice(0, 64);
+    if (name === "totalFiles") {
+      const reportedTotalFiles = Math.max(1, Number(value) || 1);
+      if (clientToken) {
+        progressByClient.set(clientToken, { done: 0, total: reportedTotalFiles, current: "Загрузка фото на сервер..." });
+      }
+    }
   });
 
   busboy.on("file", (_name, stream, info) => {
@@ -183,7 +189,7 @@ router.post("/process", requireAuth, processLimiter, (req, res) => {
     });
     stream.pipe(fileWrite);
     writePromises.push(new Promise((resolve, reject) => {
-      fileWrite.once("close", resolve);
+      fileWrite.once("finish", resolve);
       fileWrite.once("error", reject);
     }));
   });
@@ -265,7 +271,9 @@ router.post("/process", requireAuth, processLimiter, (req, res) => {
       const processed = [];
       logger.info({ batch: token, count: uploads.length, profile: profile.name }, "Начало обработки партии");
 
-      if (clientToken) progressByClient.set(clientToken, { done: 0, total: uploads.length, current: "" });
+      if (clientToken) {
+        progressByClient.set(clientToken, { done: 0, total: uploads.length, current: "Подготовка к обработке..." });
+      }
 
       for (let index = 0; index < uploads.length; index += 1) {
         if (ac.signal.aborted) throw new Error("Обработка отменена пользователем.");
