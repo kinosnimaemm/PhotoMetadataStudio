@@ -5,7 +5,8 @@ const logger = require("./src/utils/logger");
 const apiRoutes = require("./src/api/routes");
 
 const APP_MODE = process.env.APP_MODE || "local";
-const HOST = process.env.HOST || (APP_MODE === "cloud" ? "0.0.0.0" : "127.0.0.1");
+const IS_CLOUD = APP_MODE === "cloud" || !!process.env.RENDER;
+const HOST = process.env.HOST || (IS_CLOUD ? "0.0.0.0" : "127.0.0.1");
 const PORT = Number(process.env.PORT || 4317);
 const PUBLIC = path.join(__dirname, "public");
 
@@ -13,7 +14,7 @@ const app = express();
 
 // За обратным прокси (Render/Railway) доверяем первому X-Forwarded-For,
 // иначе rate limiter будет видеть IP прокси вместо IP клиента.
-if (APP_MODE === "cloud") app.set("trust proxy", 1);
+if (IS_CLOUD) app.set("trust proxy", 1);
 
 // Базовые security-заголовки (без зависимости от helmet)
 app.use((req, res, next) => {
